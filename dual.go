@@ -1,9 +1,6 @@
 package dual
 
-import (
-	"fmt"
-	"math"
-)
+import "fmt"
 
 const (
 	epsilon = 0.00000001
@@ -117,5 +114,7 @@ func (z *Dual) Mul(x, y *Dual) *Dual {
 	return z
 }
 
-// Norm method returns the norm of z.
-func (z *Dual) Norm() float64 { return math.Abs(z.__[0]) }
+// Quad method returns the non-negative quadrance of z.
+func (z *Dual) Quad() float64 {
+	return (new(Dual).Mul(z, new(Dual).Conj(z))).__[0]
+}
