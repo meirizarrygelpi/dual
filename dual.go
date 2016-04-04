@@ -28,8 +28,8 @@ func (z *Dual) Equals(x *Dual) bool {
 		equals(z.__[1], x.__[1]))
 }
 
-// Clone method clones x onto z.
-func (z *Dual) Clone(x *Dual) *Dual {
+// Set method sets z equal to x.
+func (z *Dual) Set(x *Dual) *Dual {
 	for i, v := range x.__ {
 		z.__[i] = v
 	}
@@ -95,7 +95,7 @@ func (z *Dual) Add(x, y *Dual) *Dual {
 	return z
 }
 
-// Sub method sets z to the sum of x and y, and returns z.
+// Sub method sets z to the difference of x and y, and returns z.
 func (z *Dual) Sub(x, y *Dual) *Dual {
 	for i, v := range x.__ {
 		z.__[i] = v - y.__[i]
@@ -106,8 +106,8 @@ func (z *Dual) Sub(x, y *Dual) *Dual {
 
 // Mul method sets z to the product of x and y, and returns z.
 func (z *Dual) Mul(x, y *Dual) *Dual {
-	p := new(Dual).Clone(x)
-	q := new(Dual).Clone(y)
+	p := new(Dual).Set(x)
+	q := new(Dual).Set(y)
 	z.__[0] = p.__[0] * q.__[0]
 	z.__[1] = (p.__[0] * q.__[1]) + (p.__[1] * q.__[0])
 
