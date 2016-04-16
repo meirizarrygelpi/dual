@@ -1,6 +1,9 @@
 package dual
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 const epsilon = 0.00000001
 
@@ -32,21 +35,21 @@ func (z *Dual) Set(x *Dual) *Dual {
 	return z
 }
 
-// String method returns the string version of a Dual value.
+// String method returns the string version of a Dual value. It mimics the
+// behavior for complex64 and complex128 types.
 func (z Dual) String() string {
-	if z[1] == 0 {
-		return fmt.Sprintf("%g", z[0])
-	}
-
-	if z[0] == 0 {
-		return fmt.Sprintf("%gε", z[1])
-	}
-
+	a := make([]string, 5)
+	a[0] = "("
+	a[1] = fmt.Sprintf("%g", z[0])
 	if z[1] < 0 {
-		return fmt.Sprintf("%g - %gε", z[0], -z[1])
+		a[2] = fmt.Sprintf("%g", z[1])
+	} else {
+		a[2] = fmt.Sprintf("+%g", z[1])
 	}
+	a[3] = "ε"
+	a[4] = ")"
 
-	return fmt.Sprintf("%g + %gε", z[0], z[1])
+	return strings.Join(a, "")
 }
 
 // New function returns a pointer to a Dual value made from two given real
@@ -112,4 +115,30 @@ func (z *Dual) Mul(x, y *Dual) *Dual {
 // Quad method returns the non-negative quadrance of z.
 func (z *Dual) Quad() float64 {
 	return (new(Dual).Mul(z, new(Dual).Conj(z)))[0]
+}
+
+// IsZeroDiv method returns true if z is a zero divisor. This is equivalent to
+// z being nilpotent: z = bε.
+func (z *Dual) IsZeroDiv() bool {
+	return !notEquals(z[0], 0)
+}
+
+// Inv method sets z equal to the inverse of x, and returns z. If x is a
+// zero divisor, then Inv panics.
+func (z *Dual) Inv(x *Dual) *Dual {
+	if x.IsZeroDiv() {
+		panic("zero divisor")
+	}
+
+	return z.Scalar(new(Dual).Conj(x), 1/x.Quad())
+}
+
+// Quo method sets z equal to the quotient x/y, and returns z. If y is a
+// zero divisor, then Quo panics.
+func (z *Dual) Quo(x, y *Dual) *Dual {
+	if y.IsZeroDiv() {
+		panic("denominator is a zero divisor")
+	}
+
+	return z.Scalar(new(Dual).Mul(x, new(Dual).Conj(y)), 1/y.Quad())
 }
