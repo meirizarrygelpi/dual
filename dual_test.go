@@ -25,7 +25,6 @@ func TestEquals(t *testing.T) {
 		{New(2.03, 3), New(2.0299999999, 3), true},
 		{New(1, 2), New(3, 4), false},
 	}
-
 	for _, test := range tests {
 		if got := test.x.Equals(test.y); got != test.want {
 			t.Errorf("Equals(%v, %v) = %v", test.x, test.y, got)
@@ -33,7 +32,7 @@ func TestEquals(t *testing.T) {
 	}
 }
 
-func TestSet(t *testing.T) {
+func TestCopy(t *testing.T) {
 	var tests = []struct {
 		x    *Dual
 		want *Dual
@@ -41,10 +40,9 @@ func TestSet(t *testing.T) {
 		{zero, zero},
 		{New(1, 2), New(1, 2)},
 	}
-
 	for _, test := range tests {
-		if got := new(Dual).Set(test.x); !got.Equals(test.want) {
-			t.Errorf("Set(%v) = %v, want %v", test.x, got, test.want)
+		if got := new(Dual).Copy(test.x); !got.Equals(test.want) {
+			t.Errorf("Copy(%v) = %v, want %v", test.x, got, test.want)
 		}
 	}
 }
@@ -62,7 +60,6 @@ func TestString(t *testing.T) {
 		{New(-1, 1), "(-1+1ε)"},
 		{New(-1, -1), "(-1-1ε)"},
 	}
-
 	for _, test := range tests {
 		if got := test.x.String(); got != test.want {
 			t.Errorf("String(%v) = %v, want %v", test.x, got, test.want)
@@ -82,7 +79,7 @@ func ExampleNew() {
 	// (-4+5ε)
 }
 
-func TestScalar(t *testing.T) {}
+func TestScal(t *testing.T) {}
 
 func TestNeg(t *testing.T) {}
 
@@ -105,12 +102,13 @@ func TestIsZeroDiv(t *testing.T) {
 		{e0, false},
 		{e1, true},
 	}
-
 	for _, test := range tests {
 		if got := test.z.IsZeroDiv(); got != test.want {
 			t.Errorf("IsZeroDiv(%v) = %v", test.z, got)
 		}
 	}
 }
+
+func TestInv(t *testing.T) {}
 
 func TestQuo(t *testing.T) {}
