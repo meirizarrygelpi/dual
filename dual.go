@@ -2,21 +2,26 @@ package dual
 
 import (
 	"fmt"
+	"math"
 	"strings"
 )
 
-// Dual type represents a dual number over the real numbers.
+// Dual type represents a dual number a + bε over the real numbers, with
+// ε² = 0.
 type Dual [2]float64
 
-// String method returns the string version of a Dual value. It mimics the
-// behavior for complex64 and complex128 types.
-func (z Dual) String() string {
+// String method returns the string version of a Dual value. If z = a + bε,
+// then the string is "(a+bε)", similar to complex128 values.
+func (z *Dual) String() string {
 	a := make([]string, 5)
 	a[0] = "("
 	a[1] = fmt.Sprintf("%g", z[0])
-	if z[1] < 0 {
+	switch {
+	case math.IsInf(z[1], +1):
+		a[2] = "+Inf"
+	case z[1] < 0:
 		a[2] = fmt.Sprintf("%g", z[1])
-	} else {
+	default:
 		a[2] = fmt.Sprintf("+%g", z[1])
 	}
 	a[3] = "ε"
@@ -43,7 +48,7 @@ func (z *Dual) Copy(x *Dual) *Dual {
 }
 
 // New function returns a pointer to a Dual value made from two given real
-// numbers (i.e. float64s): a + bε.
+// numbers (i.e. float64s).
 func New(a, b float64) *Dual {
 	z := new(Dual)
 	z[0] = a
@@ -51,7 +56,7 @@ func New(a, b float64) *Dual {
 	return z
 }
 
-// Scal method sets z equal to a*x, and returns z.
+// Scal method sets z equal to x scaled by a, and returns z.
 func (z *Dual) Scal(x *Dual, a float64) *Dual {
 	for i, v := range x {
 		z[i] = a * v
@@ -71,7 +76,7 @@ func (z *Dual) Conj(x *Dual) *Dual {
 	return z
 }
 
-// Add method sets z to the sum of x and y, and returns z.
+// Add method sets z equal to the sum of x and y, and returns z.
 func (z *Dual) Add(x, y *Dual) *Dual {
 	for i, v := range x {
 		z[i] = v + y[i]
@@ -79,7 +84,7 @@ func (z *Dual) Add(x, y *Dual) *Dual {
 	return z
 }
 
-// Sub method sets z to the difference of x and y, and returns z.
+// Sub method sets z equal to the difference of x and y, and returns z.
 func (z *Dual) Sub(x, y *Dual) *Dual {
 	for i, v := range x {
 		z[i] = v - y[i]
@@ -87,7 +92,7 @@ func (z *Dual) Sub(x, y *Dual) *Dual {
 	return z
 }
 
-// Mul method sets z to the product of x and y, and returns z.
+// Mul method sets z equal to the product of x and y, and returns z.
 func (z *Dual) Mul(x, y *Dual) *Dual {
 	p := new(Dual).Copy(x)
 	q := new(Dual).Copy(y)
@@ -102,7 +107,7 @@ func (z *Dual) Quad() float64 {
 }
 
 // IsZeroDiv method returns true if z is a zero divisor. This is equivalent to
-// z being nilpotent: z = bε.
+// z being nilpotent (i.e. z² = 0).
 func (z *Dual) IsZeroDiv() bool {
 	return !notEquals(z[0], 0)
 }
@@ -123,4 +128,46 @@ func (z *Dual) Quo(x, y *Dual) *Dual {
 		panic("denominator is a zero divisor")
 	}
 	return z.Scal(new(Dual).Mul(x, new(Dual).Conj(y)), 1/y.Quad())
+}
+
+// IsInf method returns true if any of the components of z are infinite. The
+// code in this method is inspired by the IsInf function in "math/cmplx".
+func (z *Dual) IsInf() bool {
+	for _, v := range z {
+		if math.IsInf(v, 0) {
+			return true
+		}
+	}
+	return false
+}
+
+// Inf function returns a pointer to a dual infinity, (+Inf+Infε). The code in
+// this function is inspired by the Inf function in "math/cmplx".
+func Inf() *Dual {
+	inf := math.Inf(1)
+	return New(inf, inf)
+}
+
+// IsNaN method returns true if any component of z is NaN and neither is an
+// infinity. The code in this method is inspired by the IsNaN function in
+// "math/cmplx".
+func (z *Dual) IsNaN() bool {
+	for _, v := range z {
+		if math.IsInf(v, 0) {
+			return false
+		}
+	}
+	for _, v := range z {
+		if math.IsNaN(v) {
+			return true
+		}
+	}
+	return false
+}
+
+// NaN function returns a pointer to a dual NaN value. The code in this
+// function is inspired by the NaN function in "math/cmplx".
+func NaN() *Dual {
+	nan := math.NaN()
+	return New(nan, nan)
 }
