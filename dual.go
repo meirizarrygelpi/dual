@@ -39,7 +39,7 @@ func (z *Dual) Equals(x *Dual) bool {
 	return true
 }
 
-// Copy method copies x onto z.
+// Copy method copies x onto z, and returns z.
 func (z *Dual) Copy(x *Dual) *Dual {
 	for i, v := range x {
 		z[i] = v
@@ -121,7 +121,7 @@ func (z *Dual) Inv(x *Dual) *Dual {
 	return z.Scal(new(Dual).Conj(x), 1/x.Quad())
 }
 
-// Quo method sets z equal to the quotient x/y, and returns z. If y is a
+// Quo method sets z equal to the quotient of x and y, and returns z. If y is a
 // zero divisor, then Quo panics.
 func (z *Dual) Quo(x, y *Dual) *Dual {
 	if y.IsZeroDiv() {
@@ -130,8 +130,7 @@ func (z *Dual) Quo(x, y *Dual) *Dual {
 	return z.Scal(new(Dual).Mul(x, new(Dual).Conj(y)), 1/y.Quad())
 }
 
-// IsInf method returns true if any of the components of z are infinite. The
-// code in this method is inspired by the IsInf function in "math/cmplx".
+// IsInf method returns true if any of the components of z are infinite.
 func (z *Dual) IsInf() bool {
 	for _, v := range z {
 		if math.IsInf(v, 0) {
@@ -141,16 +140,13 @@ func (z *Dual) IsInf() bool {
 	return false
 }
 
-// Inf function returns a pointer to a dual infinity, (+Inf+Infε). The code in
-// this function is inspired by the Inf function in "math/cmplx".
-func Inf() *Dual {
-	inf := math.Inf(1)
-	return New(inf, inf)
+// Inf function returns a pointer to a dual infinity value.
+func Inf(a, b int) *Dual {
+	return New(math.Inf(a), math.Inf(b))
 }
 
 // IsNaN method returns true if any component of z is NaN and neither is an
-// infinity. The code in this method is inspired by the IsNaN function in
-// "math/cmplx".
+// infinity.
 func (z *Dual) IsNaN() bool {
 	for _, v := range z {
 		if math.IsInf(v, 0) {
@@ -165,8 +161,7 @@ func (z *Dual) IsNaN() bool {
 	return false
 }
 
-// NaN function returns a pointer to a dual NaN value. The code in this
-// function is inspired by the NaN function in "math/cmplx".
+// NaN function returns a pointer to a dual NaN value.
 func NaN() *Dual {
 	nan := math.NaN()
 	return New(nan, nan)
