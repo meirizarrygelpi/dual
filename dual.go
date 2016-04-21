@@ -21,6 +21,8 @@ func (z *Dual) String() string {
 		a[2] = "+Inf"
 	case z[1] < 0:
 		a[2] = fmt.Sprintf("%g", z[1])
+	case z[1] == 0:
+		a[2] = "+0"
 	default:
 		a[2] = fmt.Sprintf("+%g", z[1])
 	}
@@ -165,4 +167,28 @@ func (z *Dual) IsNaN() bool {
 func NaN() *Dual {
 	nan := math.NaN()
 	return New(nan, nan)
+}
+
+// Sin method sets z equal to the dual sine of x, and returns z.
+func (z *Dual) Sin(x *Dual) *Dual {
+	s, c := math.Sincos(x[0])
+	z[0] = s
+	z[1] = x[1] * c
+	return z
+}
+
+// Cos method sets z equal to the dual cosine of x, and returns z.
+func (z *Dual) Cos(x *Dual) *Dual {
+	s, c := math.Sincos(x[0])
+	z[0] = c
+	z[1] = -x[1] * s
+	return z
+}
+
+// Exp method sets z equal to the dual exponential of x, and returns z.
+func (z *Dual) Exp(x *Dual) *Dual {
+	e := math.Exp(x[0])
+	z[0] = e
+	z[1] = x[1] * e
+	return z
 }
