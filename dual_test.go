@@ -2,6 +2,7 @@ package dual
 
 import (
 	"fmt"
+	"math"
 	"testing"
 )
 
@@ -10,6 +11,26 @@ var (
 	e0   = New(1, 0)
 	e1   = New(0, 1)
 )
+
+func TestString(t *testing.T) {
+	var tests = []struct {
+		x    *Dual
+		want string
+	}{
+		{zero, "(0+0ε)"},
+		{e0, "(1+0ε)"},
+		{e1, "(0+1ε)"},
+		{New(1, 1), "(1+1ε)"},
+		{New(1, -1), "(1-1ε)"},
+		{New(-1, 1), "(-1+1ε)"},
+		{New(-1, -1), "(-1-1ε)"},
+	}
+	for _, test := range tests {
+		if got := test.x.String(); got != test.want {
+			t.Errorf("String(%v) = %v, want %v", test.x, got, test.want)
+		}
+	}
+}
 
 func TestEquals(t *testing.T) {
 	var tests = []struct {
@@ -47,26 +68,6 @@ func TestCopy(t *testing.T) {
 	}
 }
 
-func TestString(t *testing.T) {
-	var tests = []struct {
-		x    *Dual
-		want string
-	}{
-		{zero, "(0+0ε)"},
-		{e0, "(1+0ε)"},
-		{e1, "(0+1ε)"},
-		{New(1, 1), "(1+1ε)"},
-		{New(1, -1), "(1-1ε)"},
-		{New(-1, 1), "(-1+1ε)"},
-		{New(-1, -1), "(-1-1ε)"},
-	}
-	for _, test := range tests {
-		if got := test.x.String(); got != test.want {
-			t.Errorf("String(%v) = %v, want %v", test.x, got, test.want)
-		}
-	}
-}
-
 func ExampleNew() {
 	fmt.Println(New(1, 0))
 	fmt.Println(New(0, 1))
@@ -79,19 +80,137 @@ func ExampleNew() {
 	// (-4+5ε)
 }
 
-func TestScal(t *testing.T) {}
+func TestScal(t *testing.T) {
+	var tests = []struct {
+		z    *Dual
+		a    float64
+		want *Dual
+	}{
+		{zero, 1, zero},
+		{New(1, 2), 3, New(3, 6)},
+		{New(1, 2), 0, zero},
+	}
+	for _, test := range tests {
+		if got := new(Dual).Scal(test.z, test.a); !got.Equals(test.want) {
+			t.Errorf("Scal(%v, %v) = %v, want %v",
+				test.z, test.a, got, test.want)
+		}
+	}
+}
 
-func TestNeg(t *testing.T) {}
+func TestNeg(t *testing.T) {
+	var tests = []struct {
+		z    *Dual
+		want *Dual
+	}{
+		{zero, zero},
+		{e0, New(-1, 0)},
+		{e1, New(0, -1)},
+		{New(3, 4), New(-3, -4)},
+	}
+	for _, test := range tests {
+		if got := new(Dual).Neg(test.z); !got.Equals(test.want) {
+			t.Errorf("Neg(%v) = %v, want %v",
+				test.z, got, test.want)
+		}
+	}
+}
 
-func TestConj(t *testing.T) {}
+func TestConj(t *testing.T) {
+	var tests = []struct {
+		z    *Dual
+		want *Dual
+	}{
+		{zero, zero},
+		{e0, e0},
+		{e1, New(0, -1)},
+		{New(3, 4), New(3, -4)},
+	}
+	for _, test := range tests {
+		if got := new(Dual).Conj(test.z); !got.Equals(test.want) {
+			t.Errorf("Conj(%v) = %v, want %v",
+				test.z, got, test.want)
+		}
+	}
+}
 
-func TestAdd(t *testing.T) {}
+func TestAdd(t *testing.T) {
+	var tests = []struct {
+		x    *Dual
+		y    *Dual
+		want *Dual
+	}{
+		{zero, zero, zero},
+		{e0, e0, New(2, 0)},
+		{e1, e1, New(0, 2)},
+		{e0, e1, New(1, 1)},
+		{e1, e0, New(1, 1)},
+	}
+	for _, test := range tests {
+		if got := new(Dual).Add(test.x, test.y); !got.Equals(test.want) {
+			t.Errorf("Add(%v, %v) = %v, want %v",
+				test.x, test.y, got, test.want)
+		}
+	}
+}
 
-func TestSub(t *testing.T) {}
+func TestSub(t *testing.T) {
+	var tests = []struct {
+		x    *Dual
+		y    *Dual
+		want *Dual
+	}{
+		{zero, zero, zero},
+		{e0, e0, zero},
+		{e1, e1, zero},
+		{e0, e1, New(1, -1)},
+		{e1, e0, New(-1, 1)},
+	}
+	for _, test := range tests {
+		if got := new(Dual).Sub(test.x, test.y); !got.Equals(test.want) {
+			t.Errorf("Sub(%v, %v) = %v, want %v",
+				test.x, test.y, got, test.want)
+		}
+	}
+}
 
-func TestMul(t *testing.T) {}
+func TestMul(t *testing.T) {
+	var tests = []struct {
+		x    *Dual
+		y    *Dual
+		want *Dual
+	}{
+		{zero, zero, zero},
+		{e0, e0, e0},
+		{e1, e1, zero},
+		{e0, e1, e1},
+		{e1, e0, e1},
+	}
+	for _, test := range tests {
+		if got := new(Dual).Mul(test.x, test.y); !got.Equals(test.want) {
+			t.Errorf("Mul(%v, %v) = %v, want %v",
+				test.x, test.y, got, test.want)
+		}
+	}
+}
 
-func TestQuad(t *testing.T) {}
+func TestQuad(t *testing.T) {
+	var tests = []struct {
+		z    *Dual
+		want float64
+	}{
+		{zero, 0},
+		{e0, 1},
+		{e1, 0},
+		{New(-2, 1), 4},
+	}
+	for _, test := range tests {
+		if got := test.z.Quad(); notEquals(got, test.want) {
+			t.Errorf("Quad(%v) = %v, want %v",
+				test.z, got, test.want)
+		}
+	}
+}
 
 func TestIsZeroDiv(t *testing.T) {
 	var tests = []struct {
@@ -109,6 +228,88 @@ func TestIsZeroDiv(t *testing.T) {
 	}
 }
 
-func TestInv(t *testing.T) {}
+func TestInv(t *testing.T) {
+	var tests = []struct {
+		x    *Dual
+		want *Dual
+	}{
+		{e0, e0},
+		{New(2, 0), New(0.5, 0)},
+	}
+	for _, test := range tests {
+		if got := new(Dual).Inv(test.x); !got.Equals(test.want) {
+			t.Errorf("Inv(%v) = %v, want %v",
+				test.x, got, test.want)
+		}
+	}
+}
 
-func TestQuo(t *testing.T) {}
+func TestQuo(t *testing.T) {
+	var tests = []struct {
+		x    *Dual
+		y    *Dual
+		want *Dual
+	}{
+		{e0, e0, e0},
+		{New(0.5, 0), New(2, 0), New(0.25, 0)},
+	}
+	for _, test := range tests {
+		if got := new(Dual).Quo(test.x, test.y); !got.Equals(test.want) {
+			t.Errorf("Quo(%v, %v) = %v, want %v",
+				test.x, test.y, got, test.want)
+		}
+	}
+}
+
+func TestIsInf(t *testing.T) {
+	var tests = []struct {
+		z    *Dual
+		want bool
+	}{
+		{zero, false},
+		{e0, false},
+		{e1, false},
+		{New(math.Inf(0), 4), true},
+	}
+	for _, test := range tests {
+		if got := test.z.IsInf(); got != test.want {
+			t.Errorf("IsInf(%v) = %v", test.z, got)
+		}
+	}
+}
+
+func ExampleInf() {
+	fmt.Println(Inf(+1, +1))
+	fmt.Println(Inf(+1, -1))
+	fmt.Println(Inf(-1, +1))
+	fmt.Println(Inf(-1, -1))
+	// Output:
+	// (+Inf+Infε)
+	// (+Inf-Infε)
+	// (-Inf+Infε)
+	// (-Inf-Infε)
+}
+
+func TestIsNaN(t *testing.T) {
+	var tests = []struct {
+		z    *Dual
+		want bool
+	}{
+		{zero, false},
+		{e0, false},
+		{e1, false},
+		{New(math.NaN(), 4), true},
+		{New(math.Inf(0), math.NaN()), false},
+	}
+	for _, test := range tests {
+		if got := test.z.IsNaN(); got != test.want {
+			t.Errorf("IsNaN(%v) = %v", test.z, got)
+		}
+	}
+}
+
+func ExampleNaN() {
+	fmt.Println(NaN())
+	// Output:
+	// (NaN+NaNε)
+}
