@@ -17,12 +17,12 @@ func (z *Dual) String() string {
 	a[0] = "("
 	a[1] = fmt.Sprintf("%g", z[0])
 	switch {
-	case math.IsInf(z[1], +1):
-		a[2] = "+Inf"
 	case z[1] < 0:
 		a[2] = fmt.Sprintf("%g", z[1])
 	case z[1] == 0:
 		a[2] = "+0"
+	case math.IsInf(z[1], +1):
+		a[2] = "+Inf"
 	default:
 		a[2] = fmt.Sprintf("+%g", z[1])
 	}
