@@ -17,10 +17,8 @@ func (z *Dual) String() string {
 	a[0] = "("
 	a[1] = fmt.Sprintf("%g", z[0])
 	switch {
-	case z[1] < 0:
+	case math.Signbit(z[1]):
 		a[2] = fmt.Sprintf("%g", z[1])
-	case z[1] == 0:
-		a[2] = "+0"
 	case math.IsInf(z[1], +1):
 		a[2] = "+Inf"
 	default:
@@ -56,6 +54,43 @@ func New(a, b float64) *Dual {
 	z[0] = a
 	z[1] = b
 	return z
+}
+
+// IsInf method returns true if any of the components of z are infinite.
+func (z *Dual) IsInf() bool {
+	for _, v := range z {
+		if math.IsInf(v, 0) {
+			return true
+		}
+	}
+	return false
+}
+
+// Inf function returns a pointer to a dual infinity value.
+func Inf(a, b int) *Dual {
+	return New(math.Inf(a), math.Inf(b))
+}
+
+// IsNaN method returns true if any component of z is NaN and neither is an
+// infinity.
+func (z *Dual) IsNaN() bool {
+	for _, v := range z {
+		if math.IsInf(v, 0) {
+			return false
+		}
+	}
+	for _, v := range z {
+		if math.IsNaN(v) {
+			return true
+		}
+	}
+	return false
+}
+
+// NaN function returns a pointer to a dual NaN value.
+func NaN() *Dual {
+	nan := math.NaN()
+	return New(nan, nan)
 }
 
 // Scal method sets z equal to x scaled by a, and returns z.
@@ -130,43 +165,6 @@ func (z *Dual) Quo(x, y *Dual) *Dual {
 		panic("denominator is a zero divisor")
 	}
 	return z.Scal(new(Dual).Mul(x, new(Dual).Conj(y)), 1/y.Quad())
-}
-
-// IsInf method returns true if any of the components of z are infinite.
-func (z *Dual) IsInf() bool {
-	for _, v := range z {
-		if math.IsInf(v, 0) {
-			return true
-		}
-	}
-	return false
-}
-
-// Inf function returns a pointer to a dual infinity value.
-func Inf(a, b int) *Dual {
-	return New(math.Inf(a), math.Inf(b))
-}
-
-// IsNaN method returns true if any component of z is NaN and neither is an
-// infinity.
-func (z *Dual) IsNaN() bool {
-	for _, v := range z {
-		if math.IsInf(v, 0) {
-			return false
-		}
-	}
-	for _, v := range z {
-		if math.IsNaN(v) {
-			return true
-		}
-	}
-	return false
-}
-
-// NaN function returns a pointer to a dual NaN value.
-func NaN() *Dual {
-	nan := math.NaN()
-	return New(nan, nan)
 }
 
 // Sin method sets z equal to the dual sine of x, and returns z.
