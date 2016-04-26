@@ -6,12 +6,11 @@ import (
 	"strings"
 )
 
-// Dual type represents a dual number a + bε over the real numbers, with
-// ε² = 0.
+// A Dual represents a dual number as an ordered array of two float64 values.
 type Dual [2]float64
 
-// String method returns the string version of a Dual value. If z = a + bε,
-// then the string is "(a+bε)", similar to complex128 values.
+// String returns the string version of a Dual value. If z = a + bε, then the
+// string is "(a+bε)", similar to complex128 values.
 func (z *Dual) String() string {
 	a := make([]string, 5)
 	a[0] = "("
@@ -29,26 +28,25 @@ func (z *Dual) String() string {
 	return strings.Join(a, "")
 }
 
-// Equals method returns true if z and x are equal.
-func (z *Dual) Equals(x *Dual) bool {
+// Equals returns true if z and y are equal.
+func (z *Dual) Equals(y *Dual) bool {
 	for i := range z {
-		if notEquals(z[i], x[i]) {
+		if notEquals(z[i], y[i]) {
 			return false
 		}
 	}
 	return true
 }
 
-// Copy method copies x onto z, and returns z.
-func (z *Dual) Copy(x *Dual) *Dual {
-	for i, v := range x {
+// Copy copies y onto z, and returns z.
+func (z *Dual) Copy(y *Dual) *Dual {
+	for i, v := range y {
 		z[i] = v
 	}
 	return z
 }
 
-// New function returns a pointer to a Dual value made from two given real
-// numbers (i.e. float64s).
+// New returns a pointer to a Dual value made from two given float64 values.
 func New(a, b float64) *Dual {
 	z := new(Dual)
 	z[0] = a
@@ -56,7 +54,7 @@ func New(a, b float64) *Dual {
 	return z
 }
 
-// IsInf method returns true if any of the components of z are infinite.
+// IsInf returns true if any of the components of z are infinite.
 func (z *Dual) IsInf() bool {
 	for _, v := range z {
 		if math.IsInf(v, 0) {
@@ -66,13 +64,12 @@ func (z *Dual) IsInf() bool {
 	return false
 }
 
-// Inf function returns a pointer to a dual infinity value.
+// Inf returns a pointer to a dual infinity value.
 func Inf(a, b int) *Dual {
 	return New(math.Inf(a), math.Inf(b))
 }
 
-// IsNaN method returns true if any component of z is NaN and neither is an
-// infinity.
+// IsNaN returns true if any component of z is NaN and neither is an infinity.
 func (z *Dual) IsNaN() bool {
 	for _, v := range z {
 		if math.IsInf(v, 0) {
@@ -87,33 +84,33 @@ func (z *Dual) IsNaN() bool {
 	return false
 }
 
-// NaN function returns a pointer to a dual NaN value.
+// NaN returns a pointer to a dual NaN value.
 func NaN() *Dual {
 	nan := math.NaN()
 	return New(nan, nan)
 }
 
-// Scal method sets z equal to x scaled by a, and returns z.
-func (z *Dual) Scal(x *Dual, a float64) *Dual {
-	for i, v := range x {
+// Scal sets z equal to y scaled by a, and returns z.
+func (z *Dual) Scal(y *Dual, a float64) *Dual {
+	for i, v := range y {
 		z[i] = a * v
 	}
 	return z
 }
 
-// Neg method sets z equal to the negative of x, and returns z.
-func (z *Dual) Neg(x *Dual) *Dual {
-	return z.Scal(x, -1)
+// Neg sets z equal to the negative of y, and returns z.
+func (z *Dual) Neg(y *Dual) *Dual {
+	return z.Scal(y, -1)
 }
 
-// Conj method sets z equal to the conjugate of x, and returns z.
-func (z *Dual) Conj(x *Dual) *Dual {
-	z[0] = +x[0]
-	z[1] = -x[1]
+// Conj sets z equal to the conjugate of y, and returns z.
+func (z *Dual) Conj(y *Dual) *Dual {
+	z[0] = +y[0]
+	z[1] = -y[1]
 	return z
 }
 
-// Add method sets z equal to the sum of x and y, and returns z.
+// Add sets z equal to the sum of x and y, and returns z.
 func (z *Dual) Add(x, y *Dual) *Dual {
 	for i, v := range x {
 		z[i] = v + y[i]
@@ -121,7 +118,7 @@ func (z *Dual) Add(x, y *Dual) *Dual {
 	return z
 }
 
-// Sub method sets z equal to the difference of x and y, and returns z.
+// Sub sets z equal to the difference of x and y, and returns z.
 func (z *Dual) Sub(x, y *Dual) *Dual {
 	for i, v := range x {
 		z[i] = v - y[i]
@@ -129,7 +126,7 @@ func (z *Dual) Sub(x, y *Dual) *Dual {
 	return z
 }
 
-// Mul method sets z equal to the product of x and y, and returns z.
+// Mul sets z equal to the product of x and y, and returns z.
 func (z *Dual) Mul(x, y *Dual) *Dual {
 	p := new(Dual).Copy(x)
 	q := new(Dual).Copy(y)
@@ -138,27 +135,27 @@ func (z *Dual) Mul(x, y *Dual) *Dual {
 	return z
 }
 
-// Quad method returns the non-negative quadrance of z.
+// Quad returns the non-negative quadrance of z.
 func (z *Dual) Quad() float64 {
 	return (new(Dual).Mul(z, new(Dual).Conj(z)))[0]
 }
 
-// IsZeroDiv method returns true if z is a zero divisor. This is equivalent to
+// IsZeroDiv returns true if z is a zero divisor. This is equivalent to
 // z being nilpotent (i.e. z² = 0).
 func (z *Dual) IsZeroDiv() bool {
 	return !notEquals(z[0], 0)
 }
 
-// Inv method sets z equal to the inverse of x, and returns z. If x is a
+// Inv sets z equal to the inverse of y, and returns z. If y is a
 // zero divisor, then Inv panics.
-func (z *Dual) Inv(x *Dual) *Dual {
-	if x.IsZeroDiv() {
+func (z *Dual) Inv(y *Dual) *Dual {
+	if y.IsZeroDiv() {
 		panic("zero divisor")
 	}
-	return z.Scal(new(Dual).Conj(x), 1/x.Quad())
+	return z.Scal(new(Dual).Conj(y), 1/y.Quad())
 }
 
-// Quo method sets z equal to the quotient of x and y, and returns z. If y is a
+// Quo sets z equal to the quotient of x and y, and returns z. If y is a
 // zero divisor, then Quo panics.
 func (z *Dual) Quo(x, y *Dual) *Dual {
 	if y.IsZeroDiv() {
@@ -167,26 +164,40 @@ func (z *Dual) Quo(x, y *Dual) *Dual {
 	return z.Scal(new(Dual).Mul(x, new(Dual).Conj(y)), 1/y.Quad())
 }
 
-// Sin method sets z equal to the dual sine of x, and returns z.
-func (z *Dual) Sin(x *Dual) *Dual {
-	s, c := math.Sincos(x[0])
+// Sin sets z equal to the dual sine of y, and returns z.
+func (z *Dual) Sin(y *Dual) *Dual {
+	s, c := math.Sincos(y[0])
 	z[0] = s
-	z[1] = x[1] * c
+	z[1] = y[1] * c
 	return z
 }
 
-// Cos method sets z equal to the dual cosine of x, and returns z.
-func (z *Dual) Cos(x *Dual) *Dual {
-	s, c := math.Sincos(x[0])
+// Cos sets z equal to the dual cosine of y, and returns z.
+func (z *Dual) Cos(y *Dual) *Dual {
+	s, c := math.Sincos(y[0])
 	z[0] = c
-	z[1] = -x[1] * s
+	z[1] = -y[1] * s
 	return z
 }
 
-// Exp method sets z equal to the dual exponential of x, and returns z.
-func (z *Dual) Exp(x *Dual) *Dual {
-	e := math.Exp(x[0])
+// Exp sets z equal to the dual exponential of y, and returns z.
+func (z *Dual) Exp(y *Dual) *Dual {
+	e := math.Exp(y[0])
 	z[0] = e
-	z[1] = x[1] * e
+	z[1] = y[1] * e
+	return z
+}
+
+// Sinh sets z equal to the dual hyperbolic sine of y, and returns z.
+func (z *Dual) Sinh(y *Dual) *Dual {
+	z[0] = math.Sinh(y[0])
+	z[1] = y[1] * math.Cosh(y[0])
+	return z
+}
+
+// Cosh sets z equal to the dual hyperbolic cosine of y, and returns z.
+func (z *Dual) Cosh(y *Dual) *Dual {
+	z[0] = math.Cosh(y[0])
+	z[1] = y[1] * math.Sinh(y[0])
 	return z
 }
