@@ -7,9 +7,9 @@ import (
 )
 
 var (
-	zero = New(0, 0)
-	e0   = New(1, 0)
-	e1   = New(0, 1)
+	zero = &Dual{0, 0}
+	e0   = &Dual{1, 0}
+	e1   = &Dual{0, 1}
 )
 
 func TestString(t *testing.T) {
@@ -20,10 +20,10 @@ func TestString(t *testing.T) {
 		{zero, "(0+0ε)"},
 		{e0, "(1+0ε)"},
 		{e1, "(0+1ε)"},
-		{New(1, 1), "(1+1ε)"},
-		{New(1, -1), "(1-1ε)"},
-		{New(-1, 1), "(-1+1ε)"},
-		{New(-1, -1), "(-1-1ε)"},
+		{&Dual{1, 1}, "(1+1ε)"},
+		{&Dual{1, -1}, "(1-1ε)"},
+		{&Dual{-1, 1}, "(-1+1ε)"},
+		{&Dual{-1, -1}, "(-1-1ε)"},
 	}
 	for _, test := range tests {
 		if got := test.x.String(); got != test.want {
@@ -43,8 +43,8 @@ func TestEquals(t *testing.T) {
 		{e1, e1, true},
 		{e0, e1, false},
 		{e1, e0, false},
-		{New(2.03, 3), New(2.0299999999, 3), true},
-		{New(1, 2), New(3, 4), false},
+		{&Dual{2.03, 3}, &Dual{2.0299999999, 3}, true},
+		{&Dual{1, 2}, &Dual{3, 4}, false},
 	}
 	for _, test := range tests {
 		if got := test.x.Equals(test.y); got != test.want {
@@ -59,7 +59,7 @@ func TestCopy(t *testing.T) {
 		want *Dual
 	}{
 		{zero, zero},
-		{New(1, 2), New(1, 2)},
+		{&Dual{1, 2}, &Dual{1, 2}},
 	}
 	for _, test := range tests {
 		if got := new(Dual).Copy(test.x); !got.Equals(test.want) {
@@ -87,8 +87,8 @@ func TestScal(t *testing.T) {
 		want *Dual
 	}{
 		{zero, 1, zero},
-		{New(1, 2), 3, New(3, 6)},
-		{New(1, 2), 0, zero},
+		{&Dual{1, 2}, 3, &Dual{3, 6}},
+		{&Dual{1, 2}, 0, zero},
 	}
 	for _, test := range tests {
 		if got := new(Dual).Scal(test.z, test.a); !got.Equals(test.want) {
@@ -104,9 +104,9 @@ func TestNeg(t *testing.T) {
 		want *Dual
 	}{
 		{zero, zero},
-		{e0, New(-1, 0)},
-		{e1, New(0, -1)},
-		{New(3, 4), New(-3, -4)},
+		{e0, &Dual{-1, 0}},
+		{e1, &Dual{0, -1}},
+		{&Dual{3, 4}, &Dual{-3, -4}},
 	}
 	for _, test := range tests {
 		if got := new(Dual).Neg(test.z); !got.Equals(test.want) {
@@ -123,8 +123,8 @@ func TestConj(t *testing.T) {
 	}{
 		{zero, zero},
 		{e0, e0},
-		{e1, New(0, -1)},
-		{New(3, 4), New(3, -4)},
+		{e1, &Dual{0, -1}},
+		{&Dual{3, 4}, &Dual{3, -4}},
 	}
 	for _, test := range tests {
 		if got := new(Dual).Conj(test.z); !got.Equals(test.want) {
@@ -141,10 +141,10 @@ func TestAdd(t *testing.T) {
 		want *Dual
 	}{
 		{zero, zero, zero},
-		{e0, e0, New(2, 0)},
-		{e1, e1, New(0, 2)},
-		{e0, e1, New(1, 1)},
-		{e1, e0, New(1, 1)},
+		{e0, e0, &Dual{2, 0}},
+		{e1, e1, &Dual{0, 2}},
+		{e0, e1, &Dual{1, 1}},
+		{e1, e0, &Dual{1, 1}},
 	}
 	for _, test := range tests {
 		if got := new(Dual).Add(test.x, test.y); !got.Equals(test.want) {
@@ -163,8 +163,8 @@ func TestSub(t *testing.T) {
 		{zero, zero, zero},
 		{e0, e0, zero},
 		{e1, e1, zero},
-		{e0, e1, New(1, -1)},
-		{e1, e0, New(-1, 1)},
+		{e0, e1, &Dual{1, -1}},
+		{e1, e0, &Dual{-1, 1}},
 	}
 	for _, test := range tests {
 		if got := new(Dual).Sub(test.x, test.y); !got.Equals(test.want) {
@@ -202,7 +202,7 @@ func TestQuad(t *testing.T) {
 		{zero, 0},
 		{e0, 1},
 		{e1, 0},
-		{New(-2, 1), 4},
+		{&Dual{-2, 1}, 4},
 	}
 	for _, test := range tests {
 		if got := test.z.Quad(); notEquals(got, test.want) {
@@ -234,7 +234,7 @@ func TestInv(t *testing.T) {
 		want *Dual
 	}{
 		{e0, e0},
-		{New(2, 0), New(0.5, 0)},
+		{&Dual{2, 0}, &Dual{0.5, 0}},
 	}
 	for _, test := range tests {
 		if got := new(Dual).Inv(test.x); !got.Equals(test.want) {
@@ -251,7 +251,7 @@ func TestQuo(t *testing.T) {
 		want *Dual
 	}{
 		{e0, e0, e0},
-		{New(0.5, 0), New(2, 0), New(0.25, 0)},
+		{&Dual{0.5, 0}, &Dual{2, 0}, &Dual{0.25, 0}},
 	}
 	for _, test := range tests {
 		if got := new(Dual).Quo(test.x, test.y); !got.Equals(test.want) {
@@ -269,7 +269,7 @@ func TestIsInf(t *testing.T) {
 		{zero, false},
 		{e0, false},
 		{e1, false},
-		{New(math.Inf(0), 4), true},
+		{&Dual{math.Inf(0), 4}, true},
 	}
 	for _, test := range tests {
 		if got := test.z.IsInf(); got != test.want {
@@ -298,8 +298,8 @@ func TestIsNaN(t *testing.T) {
 		{zero, false},
 		{e0, false},
 		{e1, false},
-		{New(math.NaN(), 4), true},
-		{New(math.Inf(0), math.NaN()), false},
+		{&Dual{math.NaN(), 4}, true},
+		{&Dual{math.Inf(0), math.NaN()}, false},
 	}
 	for _, test := range tests {
 		if got := test.z.IsNaN(); got != test.want {
