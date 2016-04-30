@@ -7,23 +7,23 @@ import (
 )
 
 var (
-	zero = &Dual{0, 0}
-	e0   = &Dual{1, 0}
-	e1   = &Dual{0, 1}
+	zero = &Real{0, 0}
+	e0   = &Real{1, 0}
+	e1   = &Real{0, 1}
 )
 
 func TestString(t *testing.T) {
 	var tests = []struct {
-		x    *Dual
+		x    *Real
 		want string
 	}{
 		{zero, "(0+0ε)"},
 		{e0, "(1+0ε)"},
 		{e1, "(0+1ε)"},
-		{&Dual{1, 1}, "(1+1ε)"},
-		{&Dual{1, -1}, "(1-1ε)"},
-		{&Dual{-1, 1}, "(-1+1ε)"},
-		{&Dual{-1, -1}, "(-1-1ε)"},
+		{&Real{1, 1}, "(1+1ε)"},
+		{&Real{1, -1}, "(1-1ε)"},
+		{&Real{-1, 1}, "(-1+1ε)"},
+		{&Real{-1, -1}, "(-1-1ε)"},
 	}
 	for _, test := range tests {
 		if got := test.x.String(); got != test.want {
@@ -34,8 +34,8 @@ func TestString(t *testing.T) {
 
 func TestEquals(t *testing.T) {
 	var tests = []struct {
-		x    *Dual
-		y    *Dual
+		x    *Real
+		y    *Real
 		want bool
 	}{
 		{zero, zero, true},
@@ -43,8 +43,8 @@ func TestEquals(t *testing.T) {
 		{e1, e1, true},
 		{e0, e1, false},
 		{e1, e0, false},
-		{&Dual{2.03, 3}, &Dual{2.0299999999, 3}, true},
-		{&Dual{1, 2}, &Dual{3, 4}, false},
+		{&Real{2.03, 3}, &Real{2.0299999999, 3}, true},
+		{&Real{1, 2}, &Real{3, 4}, false},
 	}
 	for _, test := range tests {
 		if got := test.x.Equals(test.y); got != test.want {
@@ -55,24 +55,24 @@ func TestEquals(t *testing.T) {
 
 func TestCopy(t *testing.T) {
 	var tests = []struct {
-		x    *Dual
-		want *Dual
+		x    *Real
+		want *Real
 	}{
 		{zero, zero},
-		{&Dual{1, 2}, &Dual{1, 2}},
+		{&Real{1, 2}, &Real{1, 2}},
 	}
 	for _, test := range tests {
-		if got := new(Dual).Copy(test.x); !got.Equals(test.want) {
+		if got := new(Real).Copy(test.x); !got.Equals(test.want) {
 			t.Errorf("Copy(%v) = %v, want %v", test.x, got, test.want)
 		}
 	}
 }
 
-func ExampleNew() {
-	fmt.Println(New(1, 0))
-	fmt.Println(New(0, 1))
-	fmt.Println(New(2, -3))
-	fmt.Println(New(-4, 5))
+func ExampleNewReal() {
+	fmt.Println(NewReal(1, 0))
+	fmt.Println(NewReal(0, 1))
+	fmt.Println(NewReal(2, -3))
+	fmt.Println(NewReal(-4, 5))
 	// Output:
 	// (1+0ε)
 	// (0+1ε)
@@ -82,16 +82,16 @@ func ExampleNew() {
 
 func TestScal(t *testing.T) {
 	var tests = []struct {
-		z    *Dual
+		z    *Real
 		a    float64
-		want *Dual
+		want *Real
 	}{
 		{zero, 1, zero},
-		{&Dual{1, 2}, 3, &Dual{3, 6}},
-		{&Dual{1, 2}, 0, zero},
+		{&Real{1, 2}, 3, &Real{3, 6}},
+		{&Real{1, 2}, 0, zero},
 	}
 	for _, test := range tests {
-		if got := new(Dual).Scal(test.z, test.a); !got.Equals(test.want) {
+		if got := new(Real).Scal(test.z, test.a); !got.Equals(test.want) {
 			t.Errorf("Scal(%v, %v) = %v, want %v",
 				test.z, test.a, got, test.want)
 		}
@@ -100,35 +100,35 @@ func TestScal(t *testing.T) {
 
 func TestNeg(t *testing.T) {
 	var tests = []struct {
-		z    *Dual
-		want *Dual
+		z    *Real
+		want *Real
 	}{
 		{zero, zero},
-		{e0, &Dual{-1, 0}},
-		{e1, &Dual{0, -1}},
-		{&Dual{3, 4}, &Dual{-3, -4}},
+		{e0, &Real{-1, 0}},
+		{e1, &Real{0, -1}},
+		{&Real{3, 4}, &Real{-3, -4}},
 	}
 	for _, test := range tests {
-		if got := new(Dual).Neg(test.z); !got.Equals(test.want) {
+		if got := new(Real).Neg(test.z); !got.Equals(test.want) {
 			t.Errorf("Neg(%v) = %v, want %v",
 				test.z, got, test.want)
 		}
 	}
 }
 
-func TestConj(t *testing.T) {
+func TestDConj(t *testing.T) {
 	var tests = []struct {
-		z    *Dual
-		want *Dual
+		z    *Real
+		want *Real
 	}{
 		{zero, zero},
 		{e0, e0},
-		{e1, &Dual{0, -1}},
-		{&Dual{3, 4}, &Dual{3, -4}},
+		{e1, &Real{0, -1}},
+		{&Real{3, 4}, &Real{3, -4}},
 	}
 	for _, test := range tests {
-		if got := new(Dual).Conj(test.z); !got.Equals(test.want) {
-			t.Errorf("Conj(%v) = %v, want %v",
+		if got := new(Real).DConj(test.z); !got.Equals(test.want) {
+			t.Errorf("DConj(%v) = %v, want %v",
 				test.z, got, test.want)
 		}
 	}
@@ -136,18 +136,18 @@ func TestConj(t *testing.T) {
 
 func TestAdd(t *testing.T) {
 	var tests = []struct {
-		x    *Dual
-		y    *Dual
-		want *Dual
+		x    *Real
+		y    *Real
+		want *Real
 	}{
 		{zero, zero, zero},
-		{e0, e0, &Dual{2, 0}},
-		{e1, e1, &Dual{0, 2}},
-		{e0, e1, &Dual{1, 1}},
-		{e1, e0, &Dual{1, 1}},
+		{e0, e0, &Real{2, 0}},
+		{e1, e1, &Real{0, 2}},
+		{e0, e1, &Real{1, 1}},
+		{e1, e0, &Real{1, 1}},
 	}
 	for _, test := range tests {
-		if got := new(Dual).Add(test.x, test.y); !got.Equals(test.want) {
+		if got := new(Real).Add(test.x, test.y); !got.Equals(test.want) {
 			t.Errorf("Add(%v, %v) = %v, want %v",
 				test.x, test.y, got, test.want)
 		}
@@ -156,18 +156,18 @@ func TestAdd(t *testing.T) {
 
 func TestSub(t *testing.T) {
 	var tests = []struct {
-		x    *Dual
-		y    *Dual
-		want *Dual
+		x    *Real
+		y    *Real
+		want *Real
 	}{
 		{zero, zero, zero},
 		{e0, e0, zero},
 		{e1, e1, zero},
-		{e0, e1, &Dual{1, -1}},
-		{e1, e0, &Dual{-1, 1}},
+		{e0, e1, &Real{1, -1}},
+		{e1, e0, &Real{-1, 1}},
 	}
 	for _, test := range tests {
-		if got := new(Dual).Sub(test.x, test.y); !got.Equals(test.want) {
+		if got := new(Real).Sub(test.x, test.y); !got.Equals(test.want) {
 			t.Errorf("Sub(%v, %v) = %v, want %v",
 				test.x, test.y, got, test.want)
 		}
@@ -176,9 +176,9 @@ func TestSub(t *testing.T) {
 
 func TestMul(t *testing.T) {
 	var tests = []struct {
-		x    *Dual
-		y    *Dual
-		want *Dual
+		x    *Real
+		y    *Real
+		want *Real
 	}{
 		{zero, zero, zero},
 		{e0, e0, e0},
@@ -187,7 +187,7 @@ func TestMul(t *testing.T) {
 		{e1, e0, e1},
 	}
 	for _, test := range tests {
-		if got := new(Dual).Mul(test.x, test.y); !got.Equals(test.want) {
+		if got := new(Real).Mul(test.x, test.y); !got.Equals(test.want) {
 			t.Errorf("Mul(%v, %v) = %v, want %v",
 				test.x, test.y, got, test.want)
 		}
@@ -196,13 +196,13 @@ func TestMul(t *testing.T) {
 
 func TestQuad(t *testing.T) {
 	var tests = []struct {
-		z    *Dual
+		z    *Real
 		want float64
 	}{
 		{zero, 0},
 		{e0, 1},
 		{e1, 0},
-		{&Dual{-2, 1}, 4},
+		{&Real{-2, 1}, 4},
 	}
 	for _, test := range tests {
 		if got := test.z.Quad(); notEquals(got, test.want) {
@@ -214,7 +214,7 @@ func TestQuad(t *testing.T) {
 
 func TestIsZeroDiv(t *testing.T) {
 	var tests = []struct {
-		z    *Dual
+		z    *Real
 		want bool
 	}{
 		{zero, true},
@@ -230,14 +230,14 @@ func TestIsZeroDiv(t *testing.T) {
 
 func TestInv(t *testing.T) {
 	var tests = []struct {
-		x    *Dual
-		want *Dual
+		x    *Real
+		want *Real
 	}{
 		{e0, e0},
-		{&Dual{2, 0}, &Dual{0.5, 0}},
+		{&Real{2, 0}, &Real{0.5, 0}},
 	}
 	for _, test := range tests {
-		if got := new(Dual).Inv(test.x); !got.Equals(test.want) {
+		if got := new(Real).Inv(test.x); !got.Equals(test.want) {
 			t.Errorf("Inv(%v) = %v, want %v",
 				test.x, got, test.want)
 		}
@@ -246,43 +246,43 @@ func TestInv(t *testing.T) {
 
 func TestQuo(t *testing.T) {
 	var tests = []struct {
-		x    *Dual
-		y    *Dual
-		want *Dual
+		x    *Real
+		y    *Real
+		want *Real
 	}{
 		{e0, e0, e0},
-		{&Dual{0.5, 0}, &Dual{2, 0}, &Dual{0.25, 0}},
+		{&Real{0.5, 0}, &Real{2, 0}, &Real{0.25, 0}},
 	}
 	for _, test := range tests {
-		if got := new(Dual).Quo(test.x, test.y); !got.Equals(test.want) {
+		if got := new(Real).Quo(test.x, test.y); !got.Equals(test.want) {
 			t.Errorf("Quo(%v, %v) = %v, want %v",
 				test.x, test.y, got, test.want)
 		}
 	}
 }
 
-func TestIsInf(t *testing.T) {
+func TestIsRealInf(t *testing.T) {
 	var tests = []struct {
-		z    *Dual
+		z    *Real
 		want bool
 	}{
 		{zero, false},
 		{e0, false},
 		{e1, false},
-		{&Dual{math.Inf(0), 4}, true},
+		{&Real{math.Inf(0), 4}, true},
 	}
 	for _, test := range tests {
-		if got := test.z.IsInf(); got != test.want {
-			t.Errorf("IsInf(%v) = %v", test.z, got)
+		if got := test.z.IsRealInf(); got != test.want {
+			t.Errorf("IsRealInf(%v) = %v", test.z, got)
 		}
 	}
 }
 
-func ExampleInf() {
-	fmt.Println(Inf(+1, +1))
-	fmt.Println(Inf(+1, -1))
-	fmt.Println(Inf(-1, +1))
-	fmt.Println(Inf(-1, -1))
+func ExampleRealInf() {
+	fmt.Println(RealInf(+1, +1))
+	fmt.Println(RealInf(+1, -1))
+	fmt.Println(RealInf(-1, +1))
+	fmt.Println(RealInf(-1, -1))
 	// Output:
 	// (+Inf+Infε)
 	// (+Inf-Infε)
@@ -290,26 +290,26 @@ func ExampleInf() {
 	// (-Inf-Infε)
 }
 
-func TestIsNaN(t *testing.T) {
+func TestIsRealNaN(t *testing.T) {
 	var tests = []struct {
-		z    *Dual
+		z    *Real
 		want bool
 	}{
 		{zero, false},
 		{e0, false},
 		{e1, false},
-		{&Dual{math.NaN(), 4}, true},
-		{&Dual{math.Inf(0), math.NaN()}, false},
+		{&Real{math.NaN(), 4}, true},
+		{&Real{math.Inf(0), math.NaN()}, false},
 	}
 	for _, test := range tests {
-		if got := test.z.IsNaN(); got != test.want {
-			t.Errorf("IsNaN(%v) = %v", test.z, got)
+		if got := test.z.IsRealNaN(); got != test.want {
+			t.Errorf("IsRealNaN(%v) = %v", test.z, got)
 		}
 	}
 }
 
-func ExampleNaN() {
-	fmt.Println(NaN())
+func ExampleRealNaN() {
+	fmt.Println(RealNaN())
 	// Output:
 	// (NaN+NaNε)
 }
