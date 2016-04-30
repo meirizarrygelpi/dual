@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// A Real represents a real dual number as an ordered array of two float64
+// A Real represents a dual real number as an ordered array of two float64
 // values.
 type Real [2]float64
 
@@ -129,6 +129,8 @@ func (z *Real) Sub(x, y *Real) *Real {
 }
 
 // Mul sets z equal to the product of x and y, and returns z.
+//
+// The dual unit ε satisfies ε * ε = 0.
 func (z *Real) Mul(x, y *Real) *Real {
 	p := new(Real).Copy(x)
 	q := new(Real).Copy(y)
@@ -139,7 +141,7 @@ func (z *Real) Mul(x, y *Real) *Real {
 
 // Quad returns the non-negative quadrance of z.
 func (z *Real) Quad() float64 {
-	return (new(Real).Mul(z, new(Real).DConj(z)))[0]
+	return z[0] * z[0]
 }
 
 // IsZeroDiv returns true if z is a zero divisor. This is equivalent to
