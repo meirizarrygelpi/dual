@@ -21,11 +21,9 @@ var (
 // corresponds to the dual perplex number a + bs + cε + dεs, then the string is
 // "(a+bs+cε+dεs)", similar to complex128 values.
 func (z *Perplex) String() string {
-	p := z[0]
-	q := z[1]
 	v := make([]float64, 4)
-	v[0], v[1] = p[0], p[1]
-	v[2], v[3] = q[0], q[1]
+	v[0], v[1] = (z[0])[0], (z[0])[1]
+	v[2], v[3] = (z[1])[0], (z[1])[1]
 	a := make([]string, 9)
 	a[0] = "("
 	a[1] = fmt.Sprintf("%g", v[0])
@@ -107,7 +105,7 @@ func (z *Perplex) IsPerplexNaN() bool {
 	return false
 }
 
-// PerplexNaN returns a pointer to a dual complex NaN value.
+// PerplexNaN returns a pointer to a dual perplex NaN value.
 func PerplexNaN() *Perplex {
 	z := new(Perplex)
 	z[0] = split.NaN()
@@ -119,7 +117,7 @@ func PerplexNaN() *Perplex {
 // and returns z.
 //
 // This is a special case of Mul:
-// 		Mul(y, Perplex{a, 0})
+// 		Scal(y, a) = Mul(y, Perplex{a, 0})
 func (z *Perplex) Scal(y *Perplex, a *split.Complex) *Perplex {
 	for i, v := range y {
 		z[i] = new(split.Complex).Mul(v, a)
@@ -130,7 +128,7 @@ func (z *Perplex) Scal(y *Perplex, a *split.Complex) *Perplex {
 // Dil sets z equal to the dilation of y by a, and returns z.
 //
 // This is a special case of Mul:
-// 		Mul(y, Perplex{split.Complex{a, 0}, 0})
+// 		Dil(y, a) = Mul(y, Perplex{split.Complex{a, 0}, 0})
 func (z *Perplex) Dil(y *Perplex, a float64) *Perplex {
 	for i, v := range y {
 		z[i] = new(split.Complex).Scal(v, a)
@@ -176,7 +174,7 @@ func (z *Perplex) Sub(x, y *Perplex) *Perplex {
 
 // Mul sets z equal to the product of x and y, and returns z.
 //
-// The basic rules are:
+// The basic multiplication rules are:
 //      ε * ε = 0
 //      s * s = +1
 //      εs * εs = 0
@@ -195,7 +193,7 @@ func (z *Perplex) Mul(x, y *Perplex) *Perplex {
 	return z
 }
 
-// Quad returns the quadrance of z, a Real value.
+// Quad returns the quadrance of z, a (dual) Real value.
 func (z *Perplex) Quad() *Real {
 	p := new(Perplex).Mul(z, new(Perplex).Conj(z))
 	r := new(Real)

@@ -12,12 +12,12 @@ type Super [4]float64
 
 var (
 	// Symbols for the canonical super dual real basis.
-	symbS = [4]string{"", "ε", "η", "εη"}
+	symbSuper = [4]string{"", "σ", "τ", "στ"}
 )
 
 // String returns the string representation of a Super value. If z corresponds
-// to the super dual real number a + bε + cη + dεη, then the string is
-// "(a+bε+cη+dεη)", similar to complex128 values.
+// to the super dual real number a + bσ + cτ + dστ, then the string is
+// "(a+bσ+cτ+dστ)", similar to complex128 values.
 func (z *Super) String() string {
 	a := make([]string, 9)
 	a[0] = "("
@@ -32,7 +32,7 @@ func (z *Super) String() string {
 		default:
 			a[j] = fmt.Sprintf("+%g", z[i])
 		}
-		a[j+1] = symbS[i]
+		a[j+1] = symbSuper[i]
 		i++
 	}
 	a[8] = ")"
@@ -123,8 +123,8 @@ func (z *Super) Neg(y *Super) *Super {
 	return z.Scal(y, -1)
 }
 
-// DConj sets z equal to the super dual conjugate of y, and returns z.
-func (z *Super) DConj(y *Super) *Super {
+// DualConj sets z equal to the super dual conjugate of y, and returns z.
+func (z *Super) DualConj(y *Super) *Super {
 	z[0] = +y[0]
 	z[1] = -y[1]
 	z[2] = -y[2]
@@ -150,13 +150,12 @@ func (z *Super) Sub(x, y *Super) *Super {
 
 // Mul sets z equal to the product of x and y, and returns z.
 //
-// The basic rules are:
-//      ε * ε = η * η = 0
-//      ε * η = εη
-//      η * ε = -εη
-//      εη * εη = 0
-//      ε * εη = εη * ε = 0
-//      η * εη = εη * η = 0
+// The basic multiplication rules are:
+//      σ * σ = τ * τ = 0
+//      σ * τ = -τ * σ = στ
+//      στ * στ = 0
+//      σ * στ = στ * σ = 0
+//      τ * στ = στ * τ = 0
 // This multiplication operation is noncommutative but associative.
 func (z *Super) Mul(x, y *Super) *Super {
 	p := new(Super).Copy(x)
@@ -173,8 +172,8 @@ func (z *Super) Commutator(x, y *Super) *Super {
 	return z.Sub(new(Super).Mul(x, y), new(Super).Mul(y, x))
 }
 
-// DQuad returns the super dual quadrance of z, a float64 value.
-func (z *Super) DQuad() float64 {
+// DualQuad returns the super dual quadrance of z, a float64 value.
+func (z *Super) DualQuad() float64 {
 	return z[0] * z[0]
 }
 
@@ -190,7 +189,7 @@ func (z *Super) Inv(y *Super) *Super {
 	if y.IsZeroDiv() {
 		panic("zero divisor")
 	}
-	return z.Scal(new(Super).DConj(y), 1/y.DQuad())
+	return z.Scal(new(Super).DualConj(y), 1/y.DualQuad())
 }
 
 // Quo sets z equal to the quotient of x and y, and returns z. If y is a zero
@@ -199,5 +198,5 @@ func (z *Super) Quo(x, y *Super) *Super {
 	if y.IsZeroDiv() {
 		panic("zero divisor denominator")
 	}
-	return z.Scal(new(Super).Mul(x, new(Super).DConj(y)), 1/y.DQuad())
+	return z.Scal(new(Super).Mul(x, new(Super).DualConj(y)), 1/y.DualQuad())
 }
