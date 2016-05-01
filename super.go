@@ -6,18 +6,18 @@ import (
 	"strings"
 )
 
-// A Hyper represents a hyper dual real number as an ordered array of four
+// A Super represents a super dual real number as an ordered array of four
 // float64 values
-type Hyper [4]float64
+type Super [4]float64
 
 var (
-	symbH = [4]string{"", "ε", "η", "εη"}
+	symbS = [4]string{"", "ε", "η", "εη"}
 )
 
-// String returns the string representation of a Hyper value. If z corresponds
-// to the hyper dual real number a + bε + cη + dεη, then the string is
+// String returns the string representation of a Super value. If z corresponds
+// to the super dual real number a + bε + cη + dεη, then the string is
 // "(a+bε+cη+dεη)", similar to complex128 values.
-func (z *Hyper) String() string {
+func (z *Super) String() string {
 	a := make([]string, 9)
 	a[0] = "("
 	a[1] = fmt.Sprintf("%g", z[0])
@@ -31,7 +31,7 @@ func (z *Hyper) String() string {
 		default:
 			a[j] = fmt.Sprintf("+%g", z[i])
 		}
-		a[j+1] = symbH[i]
+		a[j+1] = symbS[i]
 		i++
 	}
 	a[8] = ")"
@@ -39,7 +39,7 @@ func (z *Hyper) String() string {
 }
 
 // Equals returns true if z and y are equal.
-func (z *Hyper) Equals(y *Hyper) bool {
+func (z *Super) Equals(y *Super) bool {
 	for i := range z {
 		if notEquals(z[i], y[i]) {
 			return false
@@ -49,17 +49,17 @@ func (z *Hyper) Equals(y *Hyper) bool {
 }
 
 // Copy copies y onto z, and returns z.
-func (z *Hyper) Copy(y *Hyper) *Hyper {
+func (z *Super) Copy(y *Super) *Super {
 	for i, v := range y {
 		z[i] = v
 	}
 	return z
 }
 
-// NewHyper returns a pointer to a Hyper value made from four given float64
+// NewHyper returns a pointer to a Super value made from four given float64
 // values.
-func NewHyper(a, b, c, d float64) *Hyper {
-	z := new(Hyper)
+func NewHyper(a, b, c, d float64) *Super {
+	z := new(Super)
 	z[0] = a
 	z[1] = b
 	z[2] = c
@@ -68,7 +68,7 @@ func NewHyper(a, b, c, d float64) *Hyper {
 }
 
 // IsHyperInf returns true if any of the components of z are infinite.
-func (z *Hyper) IsHyperInf() bool {
+func (z *Super) IsHyperInf() bool {
 	for _, v := range z {
 		if math.IsInf(v, 0) {
 			return true
@@ -77,9 +77,9 @@ func (z *Hyper) IsHyperInf() bool {
 	return false
 }
 
-// HyperInf returns a pointer to a hyper dual real infinity value.
-func HyperInf(a, b, c, d int) *Hyper {
-	z := new(Hyper)
+// HyperInf returns a pointer to a super dual real infinity value.
+func HyperInf(a, b, c, d int) *Super {
+	z := new(Super)
 	z[0] = math.Inf(a)
 	z[1] = math.Inf(b)
 	z[2] = math.Inf(c)
@@ -89,7 +89,7 @@ func HyperInf(a, b, c, d int) *Hyper {
 
 // IsHyperNaN returns true if any component of z is NaN and neither is an
 // infinity.
-func (z *Hyper) IsHyperNaN() bool {
+func (z *Super) IsHyperNaN() bool {
 	for _, v := range z {
 		if math.IsInf(v, 0) {
 			return false
@@ -103,14 +103,14 @@ func (z *Hyper) IsHyperNaN() bool {
 	return false
 }
 
-// HyperNaN returns a pointer to a hyper dual real NaN value.
-func HyperNaN() *Hyper {
+// HyperNaN returns a pointer to a super dual real NaN value.
+func HyperNaN() *Super {
 	nan := math.NaN()
-	return &Hyper{nan, nan, nan, nan}
+	return &Super{nan, nan, nan, nan}
 }
 
 // Scal sets z equal to y scaled by a, and returns z.
-func (z *Hyper) Scal(y *Hyper, a float64) *Hyper {
+func (z *Super) Scal(y *Super, a float64) *Super {
 	for i, v := range y {
 		z[i] = a * v
 	}
@@ -118,12 +118,12 @@ func (z *Hyper) Scal(y *Hyper, a float64) *Hyper {
 }
 
 // Neg sets z equal to the negative of y, and returns z.
-func (z *Hyper) Neg(y *Hyper) *Hyper {
+func (z *Super) Neg(y *Super) *Super {
 	return z.Scal(y, -1)
 }
 
-// DConj sets z equal to the hyper dual conjugate of y, and returns z.
-func (z *Hyper) DConj(y *Hyper) *Hyper {
+// DConj sets z equal to the super dual conjugate of y, and returns z.
+func (z *Super) DConj(y *Super) *Super {
 	z[0] = +y[0]
 	z[1] = -y[1]
 	z[2] = -y[2]
@@ -132,7 +132,7 @@ func (z *Hyper) DConj(y *Hyper) *Hyper {
 }
 
 // Add sets z equal to the sum of x and y, and returns z.
-func (z *Hyper) Add(x, y *Hyper) *Hyper {
+func (z *Super) Add(x, y *Super) *Super {
 	for i, v := range x {
 		z[i] = v + y[i]
 	}
@@ -140,7 +140,7 @@ func (z *Hyper) Add(x, y *Hyper) *Hyper {
 }
 
 // Sub sets z equal to the difference of x and y, and returns z.
-func (z *Hyper) Sub(x, y *Hyper) *Hyper {
+func (z *Super) Sub(x, y *Super) *Super {
 	for i, v := range x {
 		z[i] = v - y[i]
 	}
@@ -157,9 +157,9 @@ func (z *Hyper) Sub(x, y *Hyper) *Hyper {
 //      ε * εη = εη * ε = 0
 //      η * εη = εη * η = 0
 // Note that this multiplication operation is noncommutative.
-func (z *Hyper) Mul(x, y *Hyper) *Hyper {
-	p := new(Hyper).Copy(x)
-	q := new(Hyper).Copy(y)
+func (z *Super) Mul(x, y *Super) *Super {
+	p := new(Super).Copy(x)
+	q := new(Super).Copy(y)
 	z[0] = (p[0] * q[0])
 	z[1] = (p[0] * q[1]) + (p[1] * q[0])
 	z[2] = (p[0] * q[2]) + (p[2] * q[0])
@@ -167,12 +167,12 @@ func (z *Hyper) Mul(x, y *Hyper) *Hyper {
 	return z
 }
 
-// DQuad returns the hyper dual quadrance of z, a float64 value.
-func (z *Hyper) DQuad() float64 {
+// DQuad returns the super dual quadrance of z, a float64 value.
+func (z *Super) DQuad() float64 {
 	return z[0] * z[0]
 }
 
 // Commutator sets z equal to the commutator of x and y, and returns z.
-func (z *Hyper) Commutator(x, y *Hyper) *Hyper {
-	return z.Sub(new(Hyper).Mul(x, y), new(Hyper).Mul(y, x))
+func (z *Super) Commutator(x, y *Super) *Super {
+	return z.Sub(new(Super).Mul(x, y), new(Super).Mul(y, x))
 }
