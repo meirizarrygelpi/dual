@@ -6,18 +6,18 @@ import (
 	"strings"
 )
 
-// A Complex represents a dual complex number as an ordered array of four
-// float64 values.
+// A Complex represents a dual complex number as an ordered array of two
+// complex128 values.
 type Complex [4]float64
 
 var (
 	// Symbols for the canonical dual complex basis.
-	symbC = [4]string{"", "i", "ε", "εi"}
+	symbComplex = [4]string{"", "i", "ε", "εi"}
 )
 
 // String returns the string representation of a Complex value. If z
-// corresponds to the dual complex number a + bi + cε + diε, then the string is
-// "(a+bi+cε+diε)", similar to complex128 values.
+// corresponds to the dual complex number a + bi + cε + dεi, then the string is
+// "(a+bi+cε+dεi)", similar to complex128 values.
 func (z *Complex) String() string {
 	a := make([]string, 9)
 	a[0] = "("
@@ -32,7 +32,7 @@ func (z *Complex) String() string {
 		default:
 			a[j] = fmt.Sprintf("+%g", z[i])
 		}
-		a[j+1] = symbC[i]
+		a[j+1] = symbComplex[i]
 		i++
 	}
 	a[8] = ")"
@@ -112,7 +112,8 @@ func ComplexNaN() *Complex {
 
 // ScalR sets z equal to y scaled by a (with a being float64), and returns z.
 //
-// This is a special case of Mul: Mul(z, Complex{a, 0, 0, 0}).
+// This is a special case of Mul:
+// 		Mul(z, Complex{a, 0, 0, 0})
 func (z *Complex) ScalR(y *Complex, a float64) *Complex {
 	for i, v := range y {
 		z[i] = a * v
@@ -122,7 +123,8 @@ func (z *Complex) ScalR(y *Complex, a float64) *Complex {
 
 // ScalC sets z equal to y scaled by c (with c being complex128), and returns z.
 //
-// This is a special case of Mul: Mul(z, Complex{real(c), imag(c), 0, 0}).
+// This is a special case of Mul:
+// 		Mul(z, Complex{real(c), imag(c), 0, 0})
 func (z *Complex) ScalC(y *Complex, c complex128) *Complex {
 	a, b := real(c), imag(c)
 	z[0] = (y[0] * a) - (y[1] * b)
