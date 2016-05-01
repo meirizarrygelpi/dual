@@ -65,9 +65,12 @@ func (z *Real) IsRealInf() bool {
 	return false
 }
 
-// RealInf returns a pointer to a real dual infinity value.
+// RealInf returns a pointer to a dual real infinity value.
 func RealInf(a, b int) *Real {
-	return &Real{math.Inf(a), math.Inf(b)}
+	z := new(Real)
+	z[0] = math.Inf(a)
+	z[1] = math.Inf(b)
+	return z
 }
 
 // IsRealNaN returns true if any component of z is NaN and neither is an
@@ -86,7 +89,7 @@ func (z *Real) IsRealNaN() bool {
 	return false
 }
 
-// RealNaN returns a pointer to a dual NaN value.
+// RealNaN returns a pointer to a dual real NaN value.
 func RealNaN() *Real {
 	nan := math.NaN()
 	return &Real{nan, nan}
@@ -130,7 +133,9 @@ func (z *Real) Sub(x, y *Real) *Real {
 
 // Mul sets z equal to the product of x and y, and returns z.
 //
-// The dual unit ε satisfies ε * ε = 0.
+// The basic rule is:
+// 		ε * ε = 0
+// This multiplication operation is commutative and associative.
 func (z *Real) Mul(x, y *Real) *Real {
 	p := new(Real).Copy(x)
 	q := new(Real).Copy(y)
@@ -139,8 +144,8 @@ func (z *Real) Mul(x, y *Real) *Real {
 	return z
 }
 
-// Quad returns the non-negative quadrance of z.
-func (z *Real) Quad() float64 {
+// DQuad returns the non-negative dual quadrance of z, a float64 value.
+func (z *Real) DQuad() float64 {
 	return z[0] * z[0]
 }
 
@@ -150,22 +155,22 @@ func (z *Real) IsZeroDiv() bool {
 	return !notEquals(z[0], 0)
 }
 
-// Inv sets z equal to the inverse of y, and returns z. If y is a
-// zero divisor, then Inv panics.
+// Inv sets z equal to the inverse of y, and returns z. If y is a zero divisor,
+// then Inv panics.
 func (z *Real) Inv(y *Real) *Real {
 	if y.IsZeroDiv() {
 		panic("zero divisor")
 	}
-	return z.Scal(new(Real).DConj(y), 1/y.Quad())
+	return z.Scal(new(Real).DConj(y), 1/y.DQuad())
 }
 
-// Quo sets z equal to the quotient of x and y, and returns z. If y is a
-// zero divisor, then Quo panics.
+// Quo sets z equal to the quotient of x and y, and returns z. If y is a zero
+// divisor, then Quo panics.
 func (z *Real) Quo(x, y *Real) *Real {
 	if y.IsZeroDiv() {
-		panic("denominator is a zero divisor")
+		panic("zero divisor denominator")
 	}
-	return z.Scal(new(Real).Mul(x, new(Real).DConj(y)), 1/y.Quad())
+	return z.Scal(new(Real).Mul(x, new(Real).DConj(y)), 1/y.DQuad())
 }
 
 // Sin sets z equal to the dual sine of y, and returns z.

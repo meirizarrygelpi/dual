@@ -7,9 +7,9 @@ import (
 )
 
 var (
-	zero = &Real{0, 0}
-	e0   = &Real{1, 0}
-	e1   = &Real{0, 1}
+	zeroR = &Real{0, 0}
+	oneR  = &Real{1, 0}
+	epsiR = &Real{0, 1}
 )
 
 func TestString(t *testing.T) {
@@ -17,9 +17,9 @@ func TestString(t *testing.T) {
 		x    *Real
 		want string
 	}{
-		{zero, "(0+0ε)"},
-		{e0, "(1+0ε)"},
-		{e1, "(0+1ε)"},
+		{zeroR, "(0+0ε)"},
+		{oneR, "(1+0ε)"},
+		{epsiR, "(0+1ε)"},
 		{&Real{1, 1}, "(1+1ε)"},
 		{&Real{1, -1}, "(1-1ε)"},
 		{&Real{-1, 1}, "(-1+1ε)"},
@@ -38,11 +38,11 @@ func TestEquals(t *testing.T) {
 		y    *Real
 		want bool
 	}{
-		{zero, zero, true},
-		{e0, e0, true},
-		{e1, e1, true},
-		{e0, e1, false},
-		{e1, e0, false},
+		{zeroR, zeroR, true},
+		{oneR, oneR, true},
+		{epsiR, epsiR, true},
+		{oneR, epsiR, false},
+		{epsiR, oneR, false},
 		{&Real{2.03, 3}, &Real{2.0299999999, 3}, true},
 		{&Real{1, 2}, &Real{3, 4}, false},
 	}
@@ -58,7 +58,7 @@ func TestCopy(t *testing.T) {
 		x    *Real
 		want *Real
 	}{
-		{zero, zero},
+		{zeroR, zeroR},
 		{&Real{1, 2}, &Real{1, 2}},
 	}
 	for _, test := range tests {
@@ -86,9 +86,9 @@ func TestScal(t *testing.T) {
 		a    float64
 		want *Real
 	}{
-		{zero, 1, zero},
+		{zeroR, 1, zeroR},
 		{&Real{1, 2}, 3, &Real{3, 6}},
-		{&Real{1, 2}, 0, zero},
+		{&Real{1, 2}, 0, zeroR},
 	}
 	for _, test := range tests {
 		if got := new(Real).Scal(test.z, test.a); !got.Equals(test.want) {
@@ -103,9 +103,9 @@ func TestNeg(t *testing.T) {
 		z    *Real
 		want *Real
 	}{
-		{zero, zero},
-		{e0, &Real{-1, 0}},
-		{e1, &Real{0, -1}},
+		{zeroR, zeroR},
+		{oneR, &Real{-1, 0}},
+		{epsiR, &Real{0, -1}},
 		{&Real{3, 4}, &Real{-3, -4}},
 	}
 	for _, test := range tests {
@@ -121,9 +121,9 @@ func TestDConj(t *testing.T) {
 		z    *Real
 		want *Real
 	}{
-		{zero, zero},
-		{e0, e0},
-		{e1, &Real{0, -1}},
+		{zeroR, zeroR},
+		{oneR, oneR},
+		{epsiR, &Real{0, -1}},
 		{&Real{3, 4}, &Real{3, -4}},
 	}
 	for _, test := range tests {
@@ -140,11 +140,11 @@ func TestAdd(t *testing.T) {
 		y    *Real
 		want *Real
 	}{
-		{zero, zero, zero},
-		{e0, e0, &Real{2, 0}},
-		{e1, e1, &Real{0, 2}},
-		{e0, e1, &Real{1, 1}},
-		{e1, e0, &Real{1, 1}},
+		{zeroR, zeroR, zeroR},
+		{oneR, oneR, &Real{2, 0}},
+		{epsiR, epsiR, &Real{0, 2}},
+		{oneR, epsiR, &Real{1, 1}},
+		{epsiR, oneR, &Real{1, 1}},
 	}
 	for _, test := range tests {
 		if got := new(Real).Add(test.x, test.y); !got.Equals(test.want) {
@@ -160,11 +160,11 @@ func TestSub(t *testing.T) {
 		y    *Real
 		want *Real
 	}{
-		{zero, zero, zero},
-		{e0, e0, zero},
-		{e1, e1, zero},
-		{e0, e1, &Real{1, -1}},
-		{e1, e0, &Real{-1, 1}},
+		{zeroR, zeroR, zeroR},
+		{oneR, oneR, zeroR},
+		{epsiR, epsiR, zeroR},
+		{oneR, epsiR, &Real{1, -1}},
+		{epsiR, oneR, &Real{-1, 1}},
 	}
 	for _, test := range tests {
 		if got := new(Real).Sub(test.x, test.y); !got.Equals(test.want) {
@@ -180,11 +180,11 @@ func TestMul(t *testing.T) {
 		y    *Real
 		want *Real
 	}{
-		{zero, zero, zero},
-		{e0, e0, e0},
-		{e1, e1, zero},
-		{e0, e1, e1},
-		{e1, e0, e1},
+		{zeroR, zeroR, zeroR},
+		{oneR, oneR, oneR},
+		{epsiR, epsiR, zeroR},
+		{oneR, epsiR, epsiR},
+		{epsiR, oneR, epsiR},
 	}
 	for _, test := range tests {
 		if got := new(Real).Mul(test.x, test.y); !got.Equals(test.want) {
@@ -194,19 +194,19 @@ func TestMul(t *testing.T) {
 	}
 }
 
-func TestQuad(t *testing.T) {
+func TestDQuad(t *testing.T) {
 	var tests = []struct {
 		z    *Real
 		want float64
 	}{
-		{zero, 0},
-		{e0, 1},
-		{e1, 0},
+		{zeroR, 0},
+		{oneR, 1},
+		{epsiR, 0},
 		{&Real{-2, 1}, 4},
 	}
 	for _, test := range tests {
-		if got := test.z.Quad(); notEquals(got, test.want) {
-			t.Errorf("Quad(%v) = %v, want %v",
+		if got := test.z.DQuad(); notEquals(got, test.want) {
+			t.Errorf("DQuad(%v) = %v, want %v",
 				test.z, got, test.want)
 		}
 	}
@@ -217,9 +217,9 @@ func TestIsZeroDiv(t *testing.T) {
 		z    *Real
 		want bool
 	}{
-		{zero, true},
-		{e0, false},
-		{e1, true},
+		{zeroR, true},
+		{oneR, false},
+		{epsiR, true},
 	}
 	for _, test := range tests {
 		if got := test.z.IsZeroDiv(); got != test.want {
@@ -233,7 +233,7 @@ func TestInv(t *testing.T) {
 		x    *Real
 		want *Real
 	}{
-		{e0, e0},
+		{oneR, oneR},
 		{&Real{2, 0}, &Real{0.5, 0}},
 	}
 	for _, test := range tests {
@@ -250,7 +250,7 @@ func TestQuo(t *testing.T) {
 		y    *Real
 		want *Real
 	}{
-		{e0, e0, e0},
+		{oneR, oneR, oneR},
 		{&Real{0.5, 0}, &Real{2, 0}, &Real{0.25, 0}},
 	}
 	for _, test := range tests {
@@ -266,9 +266,9 @@ func TestIsRealInf(t *testing.T) {
 		z    *Real
 		want bool
 	}{
-		{zero, false},
-		{e0, false},
-		{e1, false},
+		{zeroR, false},
+		{oneR, false},
+		{epsiR, false},
 		{&Real{math.Inf(0), 4}, true},
 	}
 	for _, test := range tests {
@@ -295,9 +295,9 @@ func TestIsRealNaN(t *testing.T) {
 		z    *Real
 		want bool
 	}{
-		{zero, false},
-		{e0, false},
-		{e1, false},
+		{zeroR, false},
+		{oneR, false},
+		{epsiR, false},
 		{&Real{math.NaN(), 4}, true},
 		{&Real{math.Inf(0), math.NaN()}, false},
 	}

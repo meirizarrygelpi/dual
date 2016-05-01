@@ -11,6 +11,7 @@ import (
 type Complex [4]float64
 
 var (
+	// Symbols for the canonical dual complex basis.
 	symbC = [4]string{"", "i", "ε", "εi"}
 )
 
@@ -109,17 +110,31 @@ func ComplexNaN() *Complex {
 	return &Complex{nan, nan, nan, nan}
 }
 
-// Scal sets z equal to y scaled by a, and returns z.
-func (z *Complex) Scal(y *Complex, a float64) *Complex {
+// ScalR sets z equal to y scaled by a (with a being float64), and returns z.
+//
+// This is a special case of Mul: Mul(z, Complex{a, 0, 0, 0}).
+func (z *Complex) ScalR(y *Complex, a float64) *Complex {
 	for i, v := range y {
 		z[i] = a * v
 	}
 	return z
 }
 
+// ScalC sets z equal to y scaled by c (with c being complex128), and returns z.
+//
+// This is a special case of Mul: Mul(z, Complex{real(c), imag(c), 0, 0}).
+func (z *Complex) ScalC(y *Complex, c complex128) *Complex {
+	a, b := real(c), imag(c)
+	z[0] = (y[0] * a) - (y[1] * b)
+	z[1] = (y[0] * b) + (y[1] * a)
+	z[2] = (y[2] * a) - (y[3] * b)
+	z[3] = (y[2] * b) + (y[3] * a)
+	return z
+}
+
 // Neg sets z equal to the negative of y, and returns z.
 func (z *Complex) Neg(y *Complex) *Complex {
-	return z.Scal(y, -1)
+	return z.ScalR(y, -1)
 }
 
 // DConj sets z equal to the dual conjugate of y, and returns z.
@@ -165,6 +180,7 @@ func (z *Complex) Sub(x, y *Complex) *Complex {
 //      ε * i = i * ε = εi
 //      εi * i = i * εi = -ε
 //      ε * εi = εi * ε = 0
+// This multiplication rule is commutative and associative.
 func (z *Complex) Mul(x, y *Complex) *Complex {
 	p := new(Complex).Copy(x)
 	q := new(Complex).Copy(y)
@@ -188,4 +204,28 @@ func (z *Complex) Quad() *Real {
 func (z *Complex) DQuad() complex128 {
 	p := new(Complex).Mul(z, new(Complex).DConj(z))
 	return complex(p[0], p[1])
+}
+
+// IsZeroDiv returns true if z is a zero divisor. This is equivalent to
+// z being nilpotent (i.e. z² = 0).
+func (z *Complex) IsZeroDiv() bool {
+	return !notEquals(z[0], 0) && !notEquals(z[1], 0)
+}
+
+// Inv sets z equal to the inverse of y, and returns z. If y is a zero divisor,
+// then Inv panics.
+func (z *Complex) Inv(y *Complex) *Complex {
+	if y.IsZeroDiv() {
+		panic("zero divisor")
+	}
+	return z.ScalC(new(Complex).DConj(y), 1/y.DQuad())
+}
+
+// Quo sets z equal to the quotient of x and y, and returns z. If y is a zero
+// divisor, then Quo panics.
+func (z *Complex) Quo(x, y *Complex) *Complex {
+	if y.IsZeroDiv() {
+		panic("zero divisor denominator")
+	}
+	return z.ScalC(new(Complex).Mul(x, new(Complex).DConj(y)), 1/y.DQuad())
 }

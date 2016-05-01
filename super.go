@@ -11,6 +11,7 @@ import (
 type Super [4]float64
 
 var (
+	// Symbols for the canonical super dual real basis.
 	symbS = [4]string{"", "ε", "η", "εη"}
 )
 
@@ -56,9 +57,9 @@ func (z *Super) Copy(y *Super) *Super {
 	return z
 }
 
-// NewHyper returns a pointer to a Super value made from four given float64
+// NewSuper returns a pointer to a Super value made from four given float64
 // values.
-func NewHyper(a, b, c, d float64) *Super {
+func NewSuper(a, b, c, d float64) *Super {
 	z := new(Super)
 	z[0] = a
 	z[1] = b
@@ -67,8 +68,8 @@ func NewHyper(a, b, c, d float64) *Super {
 	return z
 }
 
-// IsHyperInf returns true if any of the components of z are infinite.
-func (z *Super) IsHyperInf() bool {
+// IsSuperInf returns true if any of the components of z are infinite.
+func (z *Super) IsSuperInf() bool {
 	for _, v := range z {
 		if math.IsInf(v, 0) {
 			return true
@@ -77,8 +78,8 @@ func (z *Super) IsHyperInf() bool {
 	return false
 }
 
-// HyperInf returns a pointer to a super dual real infinity value.
-func HyperInf(a, b, c, d int) *Super {
+// SuperInf returns a pointer to a super dual real infinity value.
+func SuperInf(a, b, c, d int) *Super {
 	z := new(Super)
 	z[0] = math.Inf(a)
 	z[1] = math.Inf(b)
@@ -87,9 +88,9 @@ func HyperInf(a, b, c, d int) *Super {
 	return z
 }
 
-// IsHyperNaN returns true if any component of z is NaN and neither is an
+// IsSuperNaN returns true if any component of z is NaN and neither is an
 // infinity.
-func (z *Super) IsHyperNaN() bool {
+func (z *Super) IsSuperNaN() bool {
 	for _, v := range z {
 		if math.IsInf(v, 0) {
 			return false
@@ -103,8 +104,8 @@ func (z *Super) IsHyperNaN() bool {
 	return false
 }
 
-// HyperNaN returns a pointer to a super dual real NaN value.
-func HyperNaN() *Super {
+// SuperNaN returns a pointer to a super dual real NaN value.
+func SuperNaN() *Super {
 	nan := math.NaN()
 	return &Super{nan, nan, nan, nan}
 }
@@ -156,7 +157,7 @@ func (z *Super) Sub(x, y *Super) *Super {
 //      εη * εη = 0
 //      ε * εη = εη * ε = 0
 //      η * εη = εη * η = 0
-// Note that this multiplication operation is noncommutative.
+// This multiplication operation is noncommutative but associative.
 func (z *Super) Mul(x, y *Super) *Super {
 	p := new(Super).Copy(x)
 	q := new(Super).Copy(y)
@@ -167,12 +168,36 @@ func (z *Super) Mul(x, y *Super) *Super {
 	return z
 }
 
+// Commutator sets z equal to the commutator of x and y, and returns z.
+func (z *Super) Commutator(x, y *Super) *Super {
+	return z.Sub(new(Super).Mul(x, y), new(Super).Mul(y, x))
+}
+
 // DQuad returns the super dual quadrance of z, a float64 value.
 func (z *Super) DQuad() float64 {
 	return z[0] * z[0]
 }
 
-// Commutator sets z equal to the commutator of x and y, and returns z.
-func (z *Super) Commutator(x, y *Super) *Super {
-	return z.Sub(new(Super).Mul(x, y), new(Super).Mul(y, x))
+// IsZeroDiv returns true if z is a zero divisor. This is equivalent to
+// z being nilpotent (i.e. z² = 0).
+func (z *Super) IsZeroDiv() bool {
+	return !notEquals(z[0], 0)
+}
+
+// Inv sets z equal to the inverse of y, and returns z. If y is a zero divisor,
+// then Inv panics.
+func (z *Super) Inv(y *Super) *Super {
+	if y.IsZeroDiv() {
+		panic("zero divisor")
+	}
+	return z.Scal(new(Super).DConj(y), 1/y.DQuad())
+}
+
+// Quo sets z equal to the quotient of x and y, and returns z. If y is a zero
+// divisor, then Quo panics.
+func (z *Super) Quo(x, y *Super) *Super {
+	if y.IsZeroDiv() {
+		panic("zero divisor denominator")
+	}
+	return z.Scal(new(Super).Mul(x, new(Super).DConj(y)), 1/y.DQuad())
 }
