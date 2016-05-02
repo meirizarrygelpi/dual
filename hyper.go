@@ -85,7 +85,7 @@ func HyperInf(a, b, c, d int) *Hyper {
 
 // IsHyperNaN returns true if any component of z is NaN and neither is an
 // infinity.
-func (z *Hyper) IsPerplexNaN() bool {
+func (z *Hyper) IsHyperNaN() bool {
 	if z[0].IsRealInf() || z[1].IsRealInf() {
 		return false
 	}
@@ -129,7 +129,7 @@ func (z *Hyper) Neg(y *Hyper) *Hyper {
 	return z.Dil(y, -1)
 }
 
-// DualConj sets z equal to the hyper dual conjugate of y, and returns z.
+// DualConj sets z equal to the dual conjugate of y, and returns z.
 func (z *Hyper) DualConj(y *Hyper) *Hyper {
 	z[0] = new(Real).Copy(y[0])
 	z[1] = new(Real).Neg(y[1])
