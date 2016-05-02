@@ -37,7 +37,7 @@ func (z *Hamilton) String() string {
 		default:
 			a[j] = fmt.Sprintf("+%g", v[i])
 		}
-		a[j+1] = symbQ[i]
+		a[j+1] = symbHamilton[i]
 		i++
 	}
 	a[16] = ")"

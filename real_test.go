@@ -116,7 +116,7 @@ func TestNeg(t *testing.T) {
 	}
 }
 
-func TestDConj(t *testing.T) {
+func TestDualConj(t *testing.T) {
 	var tests = []struct {
 		z    *Real
 		want *Real
@@ -127,8 +127,8 @@ func TestDConj(t *testing.T) {
 		{&Real{3, 4}, &Real{3, -4}},
 	}
 	for _, test := range tests {
-		if got := new(Real).DConj(test.z); !got.Equals(test.want) {
-			t.Errorf("DConj(%v) = %v, want %v",
+		if got := new(Real).DualConj(test.z); !got.Equals(test.want) {
+			t.Errorf("DualConj(%v) = %v, want %v",
 				test.z, got, test.want)
 		}
 	}
@@ -194,7 +194,7 @@ func TestMul(t *testing.T) {
 	}
 }
 
-func TestDQuad(t *testing.T) {
+func TestDualQuad(t *testing.T) {
 	var tests = []struct {
 		z    *Real
 		want float64
@@ -205,8 +205,8 @@ func TestDQuad(t *testing.T) {
 		{&Real{-2, 1}, 4},
 	}
 	for _, test := range tests {
-		if got := test.z.DQuad(); notEquals(got, test.want) {
-			t.Errorf("DQuad(%v) = %v, want %v",
+		if got := test.z.DualQuad(); notEquals(got, test.want) {
+			t.Errorf("DualQuad(%v) = %v, want %v",
 				test.z, got, test.want)
 		}
 	}
