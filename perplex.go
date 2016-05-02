@@ -47,10 +47,7 @@ func (z *Perplex) String() string {
 
 // Equals returns true if z and y are equal.
 func (z *Perplex) Equals(y *Perplex) bool {
-	if !z[0].Equals(y[0]) {
-		return false
-	}
-	if !z[1].Equals(y[1]) {
+	if !z[0].Equals(y[0]) || !z[1].Equals(y[1]) {
 		return false
 	}
 	return true
