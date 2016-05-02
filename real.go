@@ -10,8 +10,9 @@ import (
 // values.
 type Real [2]float64
 
-// String returns the string version of a Real value. If z = a + bε, then the
-// string is "(a+bε)", similar to complex128 values.
+// String returns the string version of a Real value.
+//
+// If z = a + bε, then the string is "(a+bε)", similar to complex128 values.
 func (z *Real) String() string {
 	a := make([]string, 5)
 	a[0] = "("

@@ -17,9 +17,10 @@ var (
 	symbPerplex = [4]string{"", "s", "ε", "εs"}
 )
 
-// String returns the string representation of a Perplex value. If z
-// corresponds to the dual perplex number a + bs + cε + dεs, then the string is
-// "(a+bs+cε+dεs)", similar to complex128 values.
+// String returns the string representation of a Perplex value.
+//
+// If z corresponds to the dual perplex number a + bs + cε + dεs, then the
+// string is "(a+bs+cε+dεs)", similar to complex128 values.
 func (z *Perplex) String() string {
 	v := make([]float64, 4)
 	v[0], v[1] = (z[0])[0], (z[0])[1]
@@ -46,19 +47,19 @@ func (z *Perplex) String() string {
 
 // Equals returns true if z and y are equal.
 func (z *Perplex) Equals(y *Perplex) bool {
-	for i := range z {
-		if !z[i].Equals(y[i]) {
-			return false
-		}
+	if !z[0].Equals(y[0]) {
+		return false
+	}
+	if !z[1].Equals(y[1]) {
+		return false
 	}
 	return true
 }
 
 // Copy copies y onto z, and returns z.
 func (z *Perplex) Copy(y *Perplex) *Perplex {
-	for i, v := range y {
-		z[i] = new(split.Complex).Copy(v)
-	}
+	z[0] = new(split.Complex).Copy(y[0])
+	z[1] = new(split.Complex).Copy(y[1])
 	return z
 }
 
@@ -73,10 +74,8 @@ func NewPerplex(a, b, c, d float64) *Perplex {
 
 // IsPerplexInf returns true if any of the components of z are infinite.
 func (z *Perplex) IsPerplexInf() bool {
-	for _, v := range z {
-		if v.IsInf() {
-			return true
-		}
+	if z[0].IsInf() || z[1].IsInf() {
+		return true
 	}
 	return false
 }
@@ -92,15 +91,11 @@ func PerplexInf(a, b, c, d int) *Perplex {
 // IsPerplexNaN returns true if any component of z is NaN and neither is an
 // infinity.
 func (z *Perplex) IsPerplexNaN() bool {
-	for _, v := range z {
-		if v.IsInf() {
-			return false
-		}
+	if z[0].IsInf() || z[1].IsInf() {
+		return false
 	}
-	for _, v := range z {
-		if v.IsNaN() {
-			return true
-		}
+	if z[0].IsNaN() || z[1].IsNaN() {
+		return true
 	}
 	return false
 }
@@ -119,9 +114,8 @@ func PerplexNaN() *Perplex {
 // This is a special case of Mul:
 // 		Scal(y, a) = Mul(y, Perplex{a, 0})
 func (z *Perplex) Scal(y *Perplex, a *split.Complex) *Perplex {
-	for i, v := range y {
-		z[i] = new(split.Complex).Mul(v, a)
-	}
+	z[0] = new(split.Complex).Mul(y[0], a)
+	z[1] = new(split.Complex).Mul(y[1], a)
 	return z
 }
 
@@ -130,9 +124,8 @@ func (z *Perplex) Scal(y *Perplex, a *split.Complex) *Perplex {
 // This is a special case of Mul:
 // 		Dil(y, a) = Mul(y, Perplex{split.Complex{a, 0}, 0})
 func (z *Perplex) Dil(y *Perplex, a float64) *Perplex {
-	for i, v := range y {
-		z[i] = new(split.Complex).Scal(v, a)
-	}
+	z[0] = new(split.Complex).Scal(y[0], a)
+	z[1] = new(split.Complex).Scal(y[1], a)
 	return z
 }
 
@@ -143,9 +136,8 @@ func (z *Perplex) Neg(y *Perplex) *Perplex {
 
 // Conj sets z equal to the split-complex conjugate of y, and returns z.
 func (z *Perplex) Conj(y *Perplex) *Perplex {
-	for i, v := range y {
-		z[i] = new(split.Complex).Conj(v)
-	}
+	z[0] = new(split.Complex).Conj(y[0])
+	z[1] = new(split.Complex).Conj(y[1])
 	return z
 }
 
@@ -158,17 +150,15 @@ func (z *Perplex) DualConj(y *Perplex) *Perplex {
 
 // Add sets z equal to the sum of x and y, and returns z.
 func (z *Perplex) Add(x, y *Perplex) *Perplex {
-	for i, v := range x {
-		z[i] = new(split.Complex).Add(v, y[i])
-	}
+	z[0] = new(split.Complex).Add(x[0], y[0])
+	z[1] = new(split.Complex).Add(x[1], y[1])
 	return z
 }
 
 // Sub sets z equal to the difference of x and y, and returns z.
 func (z *Perplex) Sub(x, y *Perplex) *Perplex {
-	for i, v := range x {
-		z[i] = new(split.Complex).Sub(v, y[i])
-	}
+	z[0] = new(split.Complex).Sub(x[0], y[0])
+	z[1] = new(split.Complex).Sub(x[1], y[1])
 	return z
 }
 

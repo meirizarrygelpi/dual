@@ -16,9 +16,10 @@ var (
 	symbComplex = [4]string{"", "i", "ε", "εi"}
 )
 
-// String returns the string representation of a Complex value. If z
-// corresponds to the dual complex number a + bi + cε + dεi, then the string is
-// "(a+bi+cε+dεi)", similar to complex128 values.
+// String returns the string representation of a Complex value.
+//
+// If z corresponds to the dual complex number a + bi + cε + dεi, then the
+// string is "(a+bi+cε+dεi)", similar to complex128 values.
 func (z *Complex) String() string {
 	v := make([]float64, 4)
 	v[0], v[1] = real(z[0]), imag(z[0])
