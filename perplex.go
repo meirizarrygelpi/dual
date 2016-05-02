@@ -149,7 +149,7 @@ func (z *Perplex) Conj(y *Perplex) *Perplex {
 	return z
 }
 
-// DualConj sets z equal to the dual perplex conjugate of y, and returns z.
+// DualConj sets z equal to the dual conjugate of y, and returns z.
 func (z *Perplex) DualConj(y *Perplex) *Perplex {
 	z[0] = new(split.Complex).Copy(y[0])
 	z[1] = new(split.Complex).Neg(y[1])
@@ -193,7 +193,7 @@ func (z *Perplex) Mul(x, y *Perplex) *Perplex {
 	return z
 }
 
-// Quad returns the quadrance of z, a (dual) Real value.
+// Quad returns the quadrance of z, a pointer to a Real value.
 func (z *Perplex) Quad() *Real {
 	p := new(Perplex).Mul(z, new(Perplex).Conj(z))
 	r := new(Real)

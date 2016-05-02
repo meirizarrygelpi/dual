@@ -3,12 +3,13 @@ package dual
 import (
 	"fmt"
 	"math"
+	"math/cmplx"
 	"strings"
 )
 
 // A Complex represents a dual complex number as an ordered array of two
 // complex128 values.
-type Complex [4]float64
+type Complex [2]complex128
 
 var (
 	// Symbols for the canonical dual complex basis.
@@ -19,18 +20,21 @@ var (
 // corresponds to the dual complex number a + bi + cε + dεi, then the string is
 // "(a+bi+cε+dεi)", similar to complex128 values.
 func (z *Complex) String() string {
+	v := make([]float64, 4)
+	v[0], v[1] = real(z[0]), imag(z[0])
+	v[2], v[3] = real(z[1]), imag(z[1])
 	a := make([]string, 9)
 	a[0] = "("
-	a[1] = fmt.Sprintf("%g", z[0])
+	a[1] = fmt.Sprintf("%g", v[0])
 	i := 1
 	for j := 2; j < 8; j = j + 2 {
 		switch {
-		case math.Signbit(z[i]):
-			a[j] = fmt.Sprintf("%g", z[i])
-		case math.IsInf(z[i], +1):
+		case math.Signbit(v[i]):
+			a[j] = fmt.Sprintf("%g", v[i])
+		case math.IsInf(v[i], +1):
 			a[j] = "+Inf"
 		default:
-			a[j] = fmt.Sprintf("+%g", z[i])
+			a[j] = fmt.Sprintf("+%g", v[i])
 		}
 		a[j+1] = symbComplex[i]
 		i++
@@ -42,7 +46,7 @@ func (z *Complex) String() string {
 // Equals returns true if z and y are equal.
 func (z *Complex) Equals(y *Complex) bool {
 	for i := range z {
-		if notEquals(z[i], y[i]) {
+		if z[i] != y[i] {
 			return false
 		}
 	}
@@ -61,17 +65,15 @@ func (z *Complex) Copy(y *Complex) *Complex {
 // values.
 func NewComplex(a, b, c, d float64) *Complex {
 	z := new(Complex)
-	z[0] = a
-	z[1] = b
-	z[2] = c
-	z[3] = d
+	z[0] = complex(a, b)
+	z[1] = complex(c, d)
 	return z
 }
 
 // IsComplexInf returns true if any of the components of z are infinite.
 func (z *Complex) IsComplexInf() bool {
 	for _, v := range z {
-		if math.IsInf(v, 0) {
+		if cmplx.IsInf(v) {
 			return true
 		}
 	}
@@ -81,10 +83,8 @@ func (z *Complex) IsComplexInf() bool {
 // ComplexInf returns a pointer to a dual complex infinity value.
 func ComplexInf(a, b, c, d int) *Complex {
 	z := new(Complex)
-	z[0] = math.Inf(a)
-	z[1] = math.Inf(b)
-	z[2] = math.Inf(c)
-	z[3] = math.Inf(d)
+	z[0] = complex(math.Inf(a), math.Inf(b))
+	z[1] = complex(math.Inf(c), math.Inf(d))
 	return z
 }
 
@@ -92,12 +92,12 @@ func ComplexInf(a, b, c, d int) *Complex {
 // infinity.
 func (z *Complex) IsComplexNaN() bool {
 	for _, v := range z {
-		if math.IsInf(v, 0) {
+		if cmplx.IsInf(v) {
 			return false
 		}
 	}
 	for _, v := range z {
-		if math.IsNaN(v) {
+		if cmplx.IsNaN(v) {
 			return true
 		}
 	}
@@ -106,54 +106,52 @@ func (z *Complex) IsComplexNaN() bool {
 
 // ComplexNaN returns a pointer to a dual complex NaN value.
 func ComplexNaN() *Complex {
-	nan := math.NaN()
-	return &Complex{nan, nan, nan, nan}
+	z := new(Complex)
+	nan := cmplx.NaN()
+	z[0] = nan
+	z[1] = nan
+	return z
 }
 
-// ScalR sets z equal to y scaled by a (with a being float64), and returns z.
+// Scal sets z equal to y scaled by a (with a being a complex128), and returns
+// z.
 //
 // This is a special case of Mul:
-// 		Mul(z, Complex{a, 0, 0, 0})
-func (z *Complex) ScalR(y *Complex, a float64) *Complex {
+// 		Scal(y, a) = Mul(y, Complex{a, 0})
+func (z *Complex) Scal(y *Complex, a complex128) *Complex {
 	for i, v := range y {
-		z[i] = a * v
+		z[i] = v * a
 	}
 	return z
 }
 
-// ScalC sets z equal to y scaled by c (with c being complex128), and returns z.
+// Dil sets z equal to the dilation of y by a, and returns z.
 //
 // This is a special case of Mul:
-// 		Mul(z, Complex{real(c), imag(c), 0, 0})
-func (z *Complex) ScalC(y *Complex, c complex128) *Complex {
-	a, b := real(c), imag(c)
-	z[0] = (y[0] * a) - (y[1] * b)
-	z[1] = (y[0] * b) + (y[1] * a)
-	z[2] = (y[2] * a) - (y[3] * b)
-	z[3] = (y[2] * b) + (y[3] * a)
+// 		Dil(y, a) = Mul(y, Complex{complex(a, 0), 0})
+func (z *Complex) Dil(y *Complex, a float64) *Complex {
+	for i, v := range y {
+		z[i] = complex(a, 0) * v
+	}
 	return z
 }
 
 // Neg sets z equal to the negative of y, and returns z.
 func (z *Complex) Neg(y *Complex) *Complex {
-	return z.ScalR(y, -1)
+	return z.Dil(y, -1)
 }
 
-// DConj sets z equal to the dual conjugate of y, and returns z.
-func (z *Complex) DConj(y *Complex) *Complex {
+// DualConj sets z equal to the dual conjugate of y, and returns z.
+func (z *Complex) DualConj(y *Complex) *Complex {
 	z[0] = +y[0]
-	z[1] = +y[1]
-	z[2] = -y[2]
-	z[3] = -y[3]
+	z[1] = -y[1]
 	return z
 }
 
 // Conj sets z equal to the complex conjugate of y, and returns z.
 func (z *Complex) Conj(y *Complex) *Complex {
-	z[0] = +y[0]
-	z[1] = -y[1]
-	z[2] = +y[2]
-	z[3] = -y[3]
+	z[0] = cmplx.Conj(y[0])
+	z[1] = cmplx.Conj(y[1])
 	return z
 }
 
@@ -186,10 +184,8 @@ func (z *Complex) Sub(x, y *Complex) *Complex {
 func (z *Complex) Mul(x, y *Complex) *Complex {
 	p := new(Complex).Copy(x)
 	q := new(Complex).Copy(y)
-	z[0] = (p[0] * q[0]) - (p[1] * q[1])
+	z[0] = p[0] * q[0]
 	z[1] = (p[0] * q[1]) + (p[1] * q[0])
-	z[2] = (p[0] * q[2]) - (p[1] * q[3]) + (p[2] * q[0]) - (p[3] * q[1])
-	z[3] = (p[0] * q[3]) + (p[1] * q[2]) + (p[2] * q[1]) + (p[3] * q[0])
 	return z
 }
 
@@ -197,21 +193,20 @@ func (z *Complex) Mul(x, y *Complex) *Complex {
 func (z *Complex) Quad() *Real {
 	p := new(Complex).Mul(z, new(Complex).Conj(z))
 	d := new(Real)
-	d[0] = p[0]
-	d[1] = p[2]
+	d[0] = real(p[0])
+	d[1] = real(p[1])
 	return d
 }
 
-// DQuad returns the dual quadrance of z, a complex128 value.
-func (z *Complex) DQuad() complex128 {
-	p := new(Complex).Mul(z, new(Complex).DConj(z))
-	return complex(p[0], p[1])
+// DualQuad returns the dual quadrance of z, a complex128 value.
+func (z *Complex) DualQuad() complex128 {
+	return (new(Complex).Mul(z, new(Complex).DualConj(z)))[0]
 }
 
 // IsZeroDiv returns true if z is a zero divisor. This is equivalent to
 // z being nilpotent (i.e. z² = 0).
 func (z *Complex) IsZeroDiv() bool {
-	return !notEquals(z[0], 0) && !notEquals(z[1], 0)
+	return z[0] != complex(0, 0)
 }
 
 // Inv sets z equal to the inverse of y, and returns z. If y is a zero divisor,
@@ -220,7 +215,7 @@ func (z *Complex) Inv(y *Complex) *Complex {
 	if y.IsZeroDiv() {
 		panic("zero divisor")
 	}
-	return z.ScalC(new(Complex).DConj(y), 1/y.DQuad())
+	return z.Scal(new(Complex).DualConj(y), 1/y.DualQuad())
 }
 
 // Quo sets z equal to the quotient of x and y, and returns z. If y is a zero
@@ -229,5 +224,5 @@ func (z *Complex) Quo(x, y *Complex) *Complex {
 	if y.IsZeroDiv() {
 		panic("zero divisor denominator")
 	}
-	return z.ScalC(new(Complex).Mul(x, new(Complex).DConj(y)), 1/y.DQuad())
+	return z.Scal(new(Complex).Mul(x, new(Complex).DualConj(y)), 1/y.DualQuad())
 }
