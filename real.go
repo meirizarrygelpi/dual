@@ -31,19 +31,16 @@ func (z *Real) String() string {
 
 // Equals returns true if z and y are equal.
 func (z *Real) Equals(y *Real) bool {
-	for i := range z {
-		if notEquals(z[i], y[i]) {
-			return false
-		}
+	if notEquals(z[0], y[0]) || notEquals(z[1], y[1]) {
+		return false
 	}
 	return true
 }
 
 // Copy copies y onto z, and returns z.
 func (z *Real) Copy(y *Real) *Real {
-	for i, v := range y {
-		z[i] = v
-	}
+	z[0] = y[0]
+	z[1] = y[1]
 	return z
 }
 
@@ -57,10 +54,8 @@ func NewReal(a, b float64) *Real {
 
 // IsRealInf returns true if any of the components of z are infinite.
 func (z *Real) IsRealInf() bool {
-	for _, v := range z {
-		if math.IsInf(v, 0) {
-			return true
-		}
+	if math.IsInf(z[0], 0) || math.IsInf(z[1], 0) {
+		return true
 	}
 	return false
 }
@@ -76,15 +71,11 @@ func RealInf(a, b int) *Real {
 // IsRealNaN returns true if any component of z is NaN and neither is an
 // infinity.
 func (z *Real) IsRealNaN() bool {
-	for _, v := range z {
-		if math.IsInf(v, 0) {
-			return false
-		}
+	if math.IsInf(z[0], 0) || math.IsInf(z[1], 0) {
+		return false
 	}
-	for _, v := range z {
-		if math.IsNaN(v) {
-			return true
-		}
+	if math.IsNaN(z[0]) || math.IsNaN(z[1]) {
+		return true
 	}
 	return false
 }
@@ -97,9 +88,8 @@ func RealNaN() *Real {
 
 // Scal sets z equal to y scaled by a, and returns z.
 func (z *Real) Scal(y *Real, a float64) *Real {
-	for i, v := range y {
-		z[i] = a * v
-	}
+	z[0] = y[0] * a
+	z[1] = y[1] * a
 	return z
 }
 
@@ -117,17 +107,15 @@ func (z *Real) DualConj(y *Real) *Real {
 
 // Add sets z equal to the sum of x and y, and returns z.
 func (z *Real) Add(x, y *Real) *Real {
-	for i, v := range x {
-		z[i] = v + y[i]
-	}
+	z[0] = x[0] + y[0]
+	z[1] = x[1] + y[1]
 	return z
 }
 
 // Sub sets z equal to the difference of x and y, and returns z.
 func (z *Real) Sub(x, y *Real) *Real {
-	for i, v := range x {
-		z[i] = v - y[i]
-	}
+	z[0] = x[0] - y[0]
+	z[1] = x[1] - y[1]
 	return z
 }
 
