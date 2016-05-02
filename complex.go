@@ -46,7 +46,10 @@ func (z *Complex) String() string {
 // Equals returns true if z and y are equal.
 func (z *Complex) Equals(y *Complex) bool {
 	for i := range z {
-		if z[i] != y[i] {
+		if notEquals(real(z[i]), real(y[i])) {
+			return false
+		}
+		if notEquals(imag(z[i]), imag(y[i])) {
 			return false
 		}
 	}
@@ -55,9 +58,8 @@ func (z *Complex) Equals(y *Complex) bool {
 
 // Copy copies y onto z, and returns z.
 func (z *Complex) Copy(y *Complex) *Complex {
-	for i, v := range y {
-		z[i] = v
-	}
+	z[0] = y[0]
+	z[1] = y[1]
 	return z
 }
 
@@ -72,10 +74,8 @@ func NewComplex(a, b, c, d float64) *Complex {
 
 // IsComplexInf returns true if any of the components of z are infinite.
 func (z *Complex) IsComplexInf() bool {
-	for _, v := range z {
-		if cmplx.IsInf(v) {
-			return true
-		}
+	if cmplx.IsInf(z[0]) || cmplx.IsInf(z[1]) {
+		return true
 	}
 	return false
 }
@@ -91,23 +91,19 @@ func ComplexInf(a, b, c, d int) *Complex {
 // IsComplexNaN returns true if any component of z is NaN and neither is an
 // infinity.
 func (z *Complex) IsComplexNaN() bool {
-	for _, v := range z {
-		if cmplx.IsInf(v) {
-			return false
-		}
+	if cmplx.IsInf(z[0]) || cmplx.IsInf(z[1]) {
+		return false
 	}
-	for _, v := range z {
-		if cmplx.IsNaN(v) {
-			return true
-		}
+	if cmplx.IsNaN(z[0]) || cmplx.IsNaN(z[1]) {
+		return true
 	}
 	return false
 }
 
 // ComplexNaN returns a pointer to a dual complex NaN value.
 func ComplexNaN() *Complex {
-	z := new(Complex)
 	nan := cmplx.NaN()
+	z := new(Complex)
 	z[0] = nan
 	z[1] = nan
 	return z
@@ -119,9 +115,8 @@ func ComplexNaN() *Complex {
 // This is a special case of Mul:
 // 		Scal(y, a) = Mul(y, Complex{a, 0})
 func (z *Complex) Scal(y *Complex, a complex128) *Complex {
-	for i, v := range y {
-		z[i] = v * a
-	}
+	z[0] = y[0] * a
+	z[1] = y[1] * a
 	return z
 }
 
@@ -130,15 +125,16 @@ func (z *Complex) Scal(y *Complex, a complex128) *Complex {
 // This is a special case of Mul:
 // 		Dil(y, a) = Mul(y, Complex{complex(a, 0), 0})
 func (z *Complex) Dil(y *Complex, a float64) *Complex {
-	for i, v := range y {
-		z[i] = complex(a, 0) * v
-	}
+	z[0] = y[0] * complex(a, 0)
+	z[1] = y[1] * complex(a, 0)
 	return z
 }
 
 // Neg sets z equal to the negative of y, and returns z.
 func (z *Complex) Neg(y *Complex) *Complex {
-	return z.Dil(y, -1)
+	z[0] = -y[0]
+	z[1] = -y[1]
+	return z
 }
 
 // DualConj sets z equal to the dual conjugate of y, and returns z.
@@ -157,17 +153,15 @@ func (z *Complex) Conj(y *Complex) *Complex {
 
 // Add sets z equal to the sum of x and y, and returns z.
 func (z *Complex) Add(x, y *Complex) *Complex {
-	for i, v := range x {
-		z[i] = v + y[i]
-	}
+	z[0] = x[0] + y[0]
+	z[1] = x[1] + y[1]
 	return z
 }
 
 // Sub sets z equal to the difference of x and y, and returns z.
 func (z *Complex) Sub(x, y *Complex) *Complex {
-	for i, v := range x {
-		z[i] = v - y[i]
-	}
+	z[0] = x[0] - y[0]
+	z[1] = x[1] - y[1]
 	return z
 }
 
