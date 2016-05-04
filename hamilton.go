@@ -46,19 +46,16 @@ func (z *Hamilton) String() string {
 
 // Equals returns true if z and y are equal.
 func (z *Hamilton) Equals(y *Hamilton) bool {
-	for i := range z {
-		if !z[i].Equals(y[i]) {
-			return false
-		}
+	if !z[0].Equals(y[0]) || !z[1].Equals(y[1]) {
+		return false
 	}
 	return true
 }
 
 // Copy copies y onto z, and returns z.
 func (z *Hamilton) Copy(y *Hamilton) *Hamilton {
-	for i, v := range y {
-		z[i] = new(qtr.Hamilton).Copy(v)
-	}
+	z[0] = new(qtr.Hamilton).Copy(y[0])
+	z[1] = new(qtr.Hamilton).Copy(y[1])
 	return z
 }
 
@@ -73,10 +70,8 @@ func NewHamilton(a, b, c, d, e, f, g, h float64) *Hamilton {
 
 // IsHamiltonInf returns true if any of the components of z are infinite.
 func (z *Hamilton) IsHamiltonInf() bool {
-	for _, v := range z {
-		if v.IsHamiltonInf() {
-			return true
-		}
+	if z[0].IsHamiltonInf() || z[1].IsHamiltonInf() {
+		return true
 	}
 	return false
 }
@@ -92,15 +87,11 @@ func HamiltonInf(a, b, c, d, e, f, g, h int) *Hamilton {
 // IsHamiltonNaN returns true if any component of z is NaN and neither is an
 // infinity.
 func (z *Hamilton) IsHamiltonNaN() bool {
-	for _, v := range z {
-		if v.IsHamiltonInf() {
-			return false
-		}
+	if z[0].IsHamiltonInf() || z[1].IsHamiltonInf() {
+		return false
 	}
-	for _, v := range z {
-		if v.IsHamiltonNaN() {
-			return true
-		}
+	if z[0].IsHamiltonNaN() || z[1].IsHamiltonNaN() {
+		return true
 	}
 	return false
 }
@@ -113,27 +104,23 @@ func HamiltonNaN() *Hamilton {
 	return z
 }
 
-// ScalR sets z equal to y scaled by a (with a being a qtr.Hamilton pointer) on
-// the right, and returns z.
+// ScalR sets z equal to y scaled by a on the right, and returns z.
 //
 // This is a special case of Mul:
 // 		ScalR(y, a) = Mul(y, Hamilton{a, 0})
 func (z *Hamilton) ScalR(y *Hamilton, a *qtr.Hamilton) *Hamilton {
-	for i, v := range y {
-		z[i] = new(qtr.Hamilton).Mul(v, a)
-	}
+	z[0] = new(qtr.Hamilton).Mul(y[0], a)
+	z[1] = new(qtr.Hamilton).Mul(y[1], a)
 	return z
 }
 
-// ScalL sets z equal to y scaled by a (with a being a qtr.Hamilton pointer) on
-// the left, and returns z.
+// ScalL sets z equal to y scaled by a on the left, and returns z.
 //
 // This is a special case of Mul:
 // 		ScalL(y, a) = Mul(Hamilton{a, 0}, y)
 func (z *Hamilton) ScalL(a *qtr.Hamilton, y *Hamilton) *Hamilton {
-	for i, v := range y {
-		z[i] = new(qtr.Hamilton).Mul(a, v)
-	}
+	z[0] = new(qtr.Hamilton).Mul(a, y[0])
+	z[1] = new(qtr.Hamilton).Mul(a, y[1])
 	return z
 }
 
@@ -142,9 +129,8 @@ func (z *Hamilton) ScalL(a *qtr.Hamilton, y *Hamilton) *Hamilton {
 // This is a special case of Mul:
 // 		Dil(y, a) = Mul(y, Hamilton{qtr.Hamilton{a, 0, 0, 0}, 0})
 func (z *Hamilton) Dil(y *Hamilton, a float64) *Hamilton {
-	for i, v := range y {
-		z[i] = new(qtr.Hamilton).Scal(v, a)
-	}
+	z[0] = new(qtr.Hamilton).Scal(y[0], a)
+	z[1] = new(qtr.Hamilton).Scal(y[1], a)
 	return z
 }
 
@@ -153,34 +139,24 @@ func (z *Hamilton) Neg(y *Hamilton) *Hamilton {
 	return z.Dil(y, -1)
 }
 
-// Conj sets z equal to the quaternion conjugate of y, and returns z.
+// Conj sets z equal to the conjugate of y, and returns z.
 func (z *Hamilton) Conj(y *Hamilton) *Hamilton {
-	for i, v := range y {
-		z[i] = new(qtr.Hamilton).Conj(v)
-	}
-	return z
-}
-
-// DualConj sets z equal to the dual conjugate of y, and returns z.
-func (z *Hamilton) DualConj(y *Hamilton) *Hamilton {
-	z[0] = new(qtr.Hamilton).Copy(y[0])
+	z[0] = new(qtr.Hamilton).Conj(y[0])
 	z[1] = new(qtr.Hamilton).Neg(y[1])
 	return z
 }
 
 // Add sets z equal to the sum of x and y, and returns z.
 func (z *Hamilton) Add(x, y *Hamilton) *Hamilton {
-	for i, v := range x {
-		z[i] = new(qtr.Hamilton).Add(v, y[i])
-	}
+	z[0] = new(qtr.Hamilton).Add(x[0], y[0])
+	z[1] = new(qtr.Hamilton).Add(x[1], y[1])
 	return z
 }
 
 // Sub sets z equal to the difference of x and y, and returns z.
 func (z *Hamilton) Sub(x, y *Hamilton) *Hamilton {
-	for i, v := range x {
-		z[i] = new(qtr.Hamilton).Sub(v, y[i])
-	}
+	z[0] = new(qtr.Hamilton).Sub(x[0], y[0])
+	z[1] = new(qtr.Hamilton).Sub(x[1], y[1])
 	return z
 }
 
@@ -209,14 +185,14 @@ func (z *Hamilton) Sub(x, y *Hamilton) *Hamilton {
 // 		εi * εk = εk * εi = 0
 // 		εj * εk = εk * εj = 0
 // 		εj * εk = εk * εj = 0
-// This multiplication rule is noncommutative but associative.
+// This multiplication rule is noncommutative and nonassociative.
 func (z *Hamilton) Mul(x, y *Hamilton) *Hamilton {
 	p := new(Hamilton).Copy(x)
 	q := new(Hamilton).Copy(y)
 	z[0] = new(qtr.Hamilton).Mul(p[0], q[0])
 	z[1] = new(qtr.Hamilton).Add(
-		new(qtr.Hamilton).Mul(p[0], q[1]),
-		new(qtr.Hamilton).Mul(p[1], q[0]),
+		new(qtr.Hamilton).Mul(q[1], p[0]),
+		new(qtr.Hamilton).Mul(p[1], q[0].Conj(q[0])),
 	)
 	return z
 }
@@ -226,13 +202,17 @@ func (z *Hamilton) Commutator(x, y *Hamilton) *Hamilton {
 	return z.Sub(new(Hamilton).Mul(x, y), new(Hamilton).Mul(y, x))
 }
 
-// Quad returns the quadrance of z, a pointer to a Real value.
-func (z *Hamilton) Quad() *Real {
-	p := new(Hamilton).Mul(z, new(Hamilton).Conj(z))
-	r := new(Real)
-	r[0] = (p[0])[0]
-	r[1] = (p[1])[0]
-	return r
+// Associator sets z equal to the associator of w, x, and y, and returns z.
+func (z *Hamilton) Associator(w, x, y *Hamilton) *Hamilton {
+	return z.Sub(
+		new(Hamilton).Mul(new(Hamilton).Mul(w, x), y),
+		new(Hamilton).Mul(w, new(Hamilton).Mul(x, y)),
+	)
+}
+
+// Quad returns the quadrance of z, a float64 value.
+func (z *Hamilton) Quad() float64 {
+	return z[0].Quad()
 }
 
 // IsZeroDiv returns true if z is a zero divisor. This is equivalent to

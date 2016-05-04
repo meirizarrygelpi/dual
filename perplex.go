@@ -131,16 +131,9 @@ func (z *Perplex) Neg(y *Perplex) *Perplex {
 	return z.Dil(y, -1)
 }
 
-// Conj sets z equal to the split-complex conjugate of y, and returns z.
+// Conj sets z equal to the conjugate of y, and returns z.
 func (z *Perplex) Conj(y *Perplex) *Perplex {
 	z[0] = new(split.Complex).Conj(y[0])
-	z[1] = new(split.Complex).Conj(y[1])
-	return z
-}
-
-// DualConj sets z equal to the dual conjugate of y, and returns z.
-func (z *Perplex) DualConj(y *Perplex) *Perplex {
-	z[0] = new(split.Complex).Copy(y[0])
 	z[1] = new(split.Complex).Neg(y[1])
 	return z
 }
@@ -168,34 +161,24 @@ func (z *Perplex) Sub(x, y *Perplex) *Perplex {
 //      ε * s = s * ε = εs
 //      εs * s = s * εs = +ε
 //      ε * εs = εs * ε = 0
-// This multiplication rule is commutative and associative.
+// This multiplication rule is noncommutative but associative.
 func (z *Perplex) Mul(x, y *Perplex) *Perplex {
 	p := new(Perplex).Copy(x)
 	q := new(Perplex).Copy(y)
 	z[0] = new(split.Complex).Mul(p[0], q[0])
 	z[1] = new(split.Complex).Add(
-		new(split.Complex).Mul(p[0], q[1]),
-		new(split.Complex).Mul(p[1], q[0]),
+		new(split.Complex).Mul(q[1], p[0]),
+		new(split.Complex).Mul(p[1], q[0].Conj(q[0])),
 	)
 	return z
 }
 
-// Quad returns the quadrance of z, a pointer to a Real value.
-func (z *Perplex) Quad() *Real {
-	p := new(Perplex).Mul(z, new(Perplex).Conj(z))
-	r := new(Real)
-	r[0] = (p[0])[0]
-	r[1] = (p[1])[0]
-	return r
+// Commutator sets z equal to the commutator of x and y, and returns z.
+func (z *Perplex) Commutator(x, y *Perplex) *Perplex {
+	return z.Sub(new(Perplex).Mul(x, y), new(Perplex).Mul(y, x))
 }
 
-// DualQuad returns the dual quadrance of z, a split.Complex value.
-func (z *Perplex) DualQuad() *split.Complex {
-	return (new(Perplex).Mul(z, new(Perplex).DualConj(z)))[0]
-}
-
-// IsZeroDiv returns true if z is a zero divisor. This is equivalent to
-// z being nilpotent (i.e. z² = 0).
-func (z *Perplex) IsZeroDiv() bool {
-	return !z[0].Equals(&split.Complex{0, 0})
+// Quad returns the quadrance of z, a float64 value.
+func (z *Perplex) Quad() float64 {
+	return z[0].Quad()
 }

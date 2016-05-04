@@ -129,9 +129,9 @@ func (z *Super) Neg(y *Super) *Super {
 	return z.Dil(y, -1)
 }
 
-// DualConj sets z equal to the dual conjugate of y, and returns z.
-func (z *Super) DualConj(y *Super) *Super {
-	z[0] = new(Real).Copy(y[0])
+// Conj sets z equal to the conjugate of y, and returns z.
+func (z *Super) Conj(y *Super) *Super {
+	z[0] = new(Real).Conj(y[0])
 	z[1] = new(Real).Neg(y[1])
 	return z
 }
@@ -164,18 +164,18 @@ func (z *Super) Mul(x, y *Super) *Super {
 	q := new(Super).Copy(y)
 	z[0] = new(Real).Mul(p[0], q[0])
 	z[1] = new(Real).Add(
-		new(Real).Mul(p[0], q[1]),
-		new(Real).Mul(p[1], q[0].DualConj(q[0])),
+		new(Real).Mul(q[1], p[0]),
+		new(Real).Mul(p[1], q[0].Conj(q[0])),
 	)
 	return z
-}
-
-// DualQuad returns the dual quadrance of z, a Real value.
-func (z *Super) DualQuad() *Real {
-	return (new(Super).Mul(z, new(Super).DualConj(z)))[0]
 }
 
 // Commutator sets z equal to the commutator of x and y, and returns z.
 func (z *Super) Commutator(x, y *Super) *Super {
 	return z.Sub(new(Super).Mul(x, y), new(Super).Mul(y, x))
+}
+
+// Quad returns the dual quadrance of z, a float64 value.
+func (z *Super) Quad() float64 {
+	return (z[0])[0] * (z[0])[0]
 }

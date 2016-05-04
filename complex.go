@@ -138,17 +138,10 @@ func (z *Complex) Neg(y *Complex) *Complex {
 	return z
 }
 
-// DualConj sets z equal to the dual conjugate of y, and returns z.
-func (z *Complex) DualConj(y *Complex) *Complex {
-	z[0] = +y[0]
-	z[1] = -y[1]
-	return z
-}
-
-// Conj sets z equal to the complex conjugate of y, and returns z.
+// Conj sets z equal to the conjugate of y, and returns z.
 func (z *Complex) Conj(y *Complex) *Complex {
 	z[0] = cmplx.Conj(y[0])
-	z[1] = cmplx.Conj(y[1])
+	z[1] = -y[1]
 	return z
 }
 
@@ -175,49 +168,28 @@ func (z *Complex) Sub(x, y *Complex) *Complex {
 //      ε * i = i * ε = εi
 //      εi * i = i * εi = -ε
 //      ε * εi = εi * ε = 0
-// This multiplication rule is commutative and associative.
+// This multiplication rule is noncommutative but associative.
 func (z *Complex) Mul(x, y *Complex) *Complex {
 	p := new(Complex).Copy(x)
 	q := new(Complex).Copy(y)
 	z[0] = p[0] * q[0]
-	z[1] = (p[0] * q[1]) + (p[1] * q[0])
+	z[1] = (p[0] * q[1]) + (p[1] * cmplx.Conj(q[0]))
 	return z
 }
 
-// Quad returns the quadrance of z, a dual real value.
-func (z *Complex) Quad() *Real {
-	p := new(Complex).Mul(z, new(Complex).Conj(z))
-	d := new(Real)
-	d[0] = real(p[0])
-	d[1] = real(p[1])
-	return d
+// Commutator sets z equal to the commutator of x and y, and returns z.
+func (z *Complex) Commutator(x, y *Complex) *Complex {
+	return z.Sub(new(Complex).Mul(x, y), new(Complex).Mul(y, x))
 }
 
-// DualQuad returns the dual quadrance of z, a complex128 value.
-func (z *Complex) DualQuad() complex128 {
-	return (new(Complex).Mul(z, new(Complex).DualConj(z)))[0]
+// Quad returns the quadrance of z, a float64 value.
+func (z *Complex) Quad() float64 {
+	a, b := real(z[0]), imag(z[0])
+	return (a * a) + (b * b)
 }
 
 // IsZeroDiv returns true if z is a zero divisor. This is equivalent to
 // z being nilpotent (i.e. z² = 0).
 func (z *Complex) IsZeroDiv() bool {
 	return z[0] != complex(0, 0)
-}
-
-// Inv sets z equal to the inverse of y, and returns z. If y is a zero divisor,
-// then Inv panics.
-func (z *Complex) Inv(y *Complex) *Complex {
-	if y.IsZeroDiv() {
-		panic("zero divisor")
-	}
-	return z.Scal(new(Complex).DualConj(y), 1/y.DualQuad())
-}
-
-// Quo sets z equal to the quotient of x and y, and returns z. If y is a zero
-// divisor, then Quo panics.
-func (z *Complex) Quo(x, y *Complex) *Complex {
-	if y.IsZeroDiv() {
-		panic("zero divisor denominator")
-	}
-	return z.Scal(new(Complex).Mul(x, new(Complex).DualConj(y)), 1/y.DualQuad())
 }

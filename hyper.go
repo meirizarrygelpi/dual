@@ -129,9 +129,9 @@ func (z *Hyper) Neg(y *Hyper) *Hyper {
 	return z.Dil(y, -1)
 }
 
-// DualConj sets z equal to the dual conjugate of y, and returns z.
-func (z *Hyper) DualConj(y *Hyper) *Hyper {
-	z[0] = new(Real).Copy(y[0])
+// Conj sets z equal to the conjugate of y, and returns z.
+func (z *Hyper) Conj(y *Hyper) *Hyper {
+	z[0] = new(Real).Conj(y[0])
 	z[1] = new(Real).Neg(y[1])
 	return z
 }
@@ -168,9 +168,4 @@ func (z *Hyper) Mul(x, y *Hyper) *Hyper {
 		new(Real).Mul(p[1], q[0]),
 	)
 	return z
-}
-
-// DualQuad returns the dual quadrance of z, a Real value.
-func (z *Hyper) DualQuad() *Real {
-	return (new(Hyper).Mul(z, new(Hyper).DualConj(z)))[0]
 }

@@ -99,8 +99,8 @@ func (z *Real) Neg(y *Real) *Real {
 	return z.Scal(y, -1)
 }
 
-// DualConj sets z equal to the dual conjugate of y, and returns z.
-func (z *Real) DualConj(y *Real) *Real {
+// Conj sets z equal to the conjugate of y, and returns z.
+func (z *Real) Conj(y *Real) *Real {
 	z[0] = +y[0]
 	z[1] = -y[1]
 	return z
@@ -133,8 +133,8 @@ func (z *Real) Mul(x, y *Real) *Real {
 	return z
 }
 
-// DualQuad returns the non-negative dual quadrance of z, a float64 value.
-func (z *Real) DualQuad() float64 {
+// Quad returns the non-negative dual quadrance of z, a float64 value.
+func (z *Real) Quad() float64 {
 	return z[0] * z[0]
 }
 
@@ -150,7 +150,7 @@ func (z *Real) Inv(y *Real) *Real {
 	if y.IsZeroDiv() {
 		panic("zero divisor")
 	}
-	return z.Scal(new(Real).DualConj(y), 1/y.DualQuad())
+	return z.Scal(new(Real).Conj(y), 1/y.Quad())
 }
 
 // Quo sets z equal to the quotient of x and y, and returns z. If y is a zero
@@ -159,7 +159,7 @@ func (z *Real) Quo(x, y *Real) *Real {
 	if y.IsZeroDiv() {
 		panic("zero divisor denominator")
 	}
-	return z.Scal(new(Real).Mul(x, new(Real).DualConj(y)), 1/y.DualQuad())
+	return z.Scal(new(Real).Mul(x, new(Real).Conj(y)), 1/y.Quad())
 }
 
 // Sin sets z equal to the dual sine of y, and returns z.
