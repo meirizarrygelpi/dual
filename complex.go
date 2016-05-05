@@ -73,8 +73,8 @@ func NewComplex(a, b, c, d float64) *Complex {
 	return z
 }
 
-// IsComplexInf returns true if any of the components of z are infinite.
-func (z *Complex) IsComplexInf() bool {
+// IsInf returns true if any of the components of z are infinite.
+func (z *Complex) IsInf() bool {
 	if cmplx.IsInf(z[0]) || cmplx.IsInf(z[1]) {
 		return true
 	}
@@ -89,9 +89,9 @@ func ComplexInf(a, b, c, d int) *Complex {
 	return z
 }
 
-// IsComplexNaN returns true if any component of z is NaN and neither is an
+// IsNaN returns true if any component of z is NaN and neither is an
 // infinity.
-func (z *Complex) IsComplexNaN() bool {
+func (z *Complex) IsNaN() bool {
 	if cmplx.IsInf(z[0]) || cmplx.IsInf(z[1]) {
 		return false
 	}

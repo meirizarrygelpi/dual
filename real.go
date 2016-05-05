@@ -53,8 +53,8 @@ func NewReal(a, b float64) *Real {
 	return z
 }
 
-// IsRealInf returns true if any of the components of z are infinite.
-func (z *Real) IsRealInf() bool {
+// IsInf returns true if any of the components of z are infinite.
+func (z *Real) IsInf() bool {
 	if math.IsInf(z[0], 0) || math.IsInf(z[1], 0) {
 		return true
 	}
@@ -69,9 +69,9 @@ func RealInf(a, b int) *Real {
 	return z
 }
 
-// IsRealNaN returns true if any component of z is NaN and neither is an
+// IsNaN returns true if any component of z is NaN and neither is an
 // infinity.
-func (z *Real) IsRealNaN() bool {
+func (z *Real) IsNaN() bool {
 	if math.IsInf(z[0], 0) || math.IsInf(z[1], 0) {
 		return false
 	}

@@ -69,8 +69,8 @@ func NewPerplex(a, b, c, d float64) *Perplex {
 	return z
 }
 
-// IsPerplexInf returns true if any of the components of z are infinite.
-func (z *Perplex) IsPerplexInf() bool {
+// IsInf returns true if any of the components of z are infinite.
+func (z *Perplex) IsInf() bool {
 	if z[0].IsInf() || z[1].IsInf() {
 		return true
 	}
@@ -85,9 +85,9 @@ func PerplexInf(a, b, c, d int) *Perplex {
 	return z
 }
 
-// IsPerplexNaN returns true if any component of z is NaN and neither is an
+// IsNaN returns true if any component of z is NaN and neither is an
 // infinity.
-func (z *Perplex) IsPerplexNaN() bool {
+func (z *Perplex) IsNaN() bool {
 	if z[0].IsInf() || z[1].IsInf() {
 		return false
 	}

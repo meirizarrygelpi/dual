@@ -67,9 +67,9 @@ func NewSuper(a, b, c, d float64) *Super {
 	return z
 }
 
-// IsSuperInf returns true if any of the components of z are infinite.
-func (z *Super) IsSuperInf() bool {
-	if z[0].IsRealInf() || z[1].IsRealInf() {
+// IsInf returns true if any of the components of z are infinite.
+func (z *Super) IsInf() bool {
+	if z[0].IsInf() || z[1].IsInf() {
 		return true
 	}
 	return false
@@ -83,13 +83,13 @@ func SuperInf(a, b, c, d int) *Super {
 	return z
 }
 
-// IsSuperNaN returns true if any component of z is NaN and neither is an
+// IsNaN returns true if any component of z is NaN and neither is an
 // infinity.
-func (z *Super) IsSuperNaN() bool {
-	if z[0].IsRealInf() || z[1].IsRealInf() {
+func (z *Super) IsNaN() bool {
+	if z[0].IsInf() || z[1].IsInf() {
 		return false
 	}
-	if z[0].IsRealNaN() || z[1].IsRealNaN() {
+	if z[0].IsNaN() || z[1].IsNaN() {
 		return true
 	}
 	return false
