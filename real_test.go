@@ -15,7 +15,7 @@ var (
 	epsiR = &Real{0, 1}
 )
 
-func TestString(t *testing.T) {
+func TestRealString(t *testing.T) {
 	var tests = []struct {
 		x    *Real
 		want string
@@ -35,7 +35,7 @@ func TestString(t *testing.T) {
 	}
 }
 
-func TestEquals(t *testing.T) {
+func TestRealEquals(t *testing.T) {
 	var tests = []struct {
 		x    *Real
 		y    *Real
@@ -56,7 +56,7 @@ func TestEquals(t *testing.T) {
 	}
 }
 
-func TestCopy(t *testing.T) {
+func TestRealCopy(t *testing.T) {
 	var tests = []struct {
 		x    *Real
 		want *Real
@@ -83,7 +83,7 @@ func ExampleNewReal() {
 	// (-4+5ε)
 }
 
-func TestScal(t *testing.T) {
+func TestRealScal(t *testing.T) {
 	var tests = []struct {
 		z    *Real
 		a    float64
@@ -101,7 +101,7 @@ func TestScal(t *testing.T) {
 	}
 }
 
-func TestNeg(t *testing.T) {
+func TestRealNeg(t *testing.T) {
 	var tests = []struct {
 		z    *Real
 		want *Real
@@ -119,7 +119,7 @@ func TestNeg(t *testing.T) {
 	}
 }
 
-func TestDualConj(t *testing.T) {
+func TestRealConj(t *testing.T) {
 	var tests = []struct {
 		z    *Real
 		want *Real
@@ -130,14 +130,14 @@ func TestDualConj(t *testing.T) {
 		{&Real{3, 4}, &Real{3, -4}},
 	}
 	for _, test := range tests {
-		if got := new(Real).DualConj(test.z); !got.Equals(test.want) {
-			t.Errorf("DualConj(%v) = %v, want %v",
+		if got := new(Real).Conj(test.z); !got.Equals(test.want) {
+			t.Errorf("Conj(%v) = %v, want %v",
 				test.z, got, test.want)
 		}
 	}
 }
 
-func TestAdd(t *testing.T) {
+func TestRealAdd(t *testing.T) {
 	var tests = []struct {
 		x    *Real
 		y    *Real
@@ -157,7 +157,7 @@ func TestAdd(t *testing.T) {
 	}
 }
 
-func TestSub(t *testing.T) {
+func TestRealSub(t *testing.T) {
 	var tests = []struct {
 		x    *Real
 		y    *Real
@@ -177,7 +177,7 @@ func TestSub(t *testing.T) {
 	}
 }
 
-func TestMul(t *testing.T) {
+func TestRealMul(t *testing.T) {
 	var tests = []struct {
 		x    *Real
 		y    *Real
@@ -197,7 +197,7 @@ func TestMul(t *testing.T) {
 	}
 }
 
-func TestDualQuad(t *testing.T) {
+func TestRealQuad(t *testing.T) {
 	var tests = []struct {
 		z    *Real
 		want float64
@@ -208,14 +208,14 @@ func TestDualQuad(t *testing.T) {
 		{&Real{-2, 1}, 4},
 	}
 	for _, test := range tests {
-		if got := test.z.DualQuad(); notEquals(got, test.want) {
-			t.Errorf("DualQuad(%v) = %v, want %v",
+		if got := test.z.Quad(); notEquals(got, test.want) {
+			t.Errorf("Quad(%v) = %v, want %v",
 				test.z, got, test.want)
 		}
 	}
 }
 
-func TestIsZeroDiv(t *testing.T) {
+func TestRealIsZeroDiv(t *testing.T) {
 	var tests = []struct {
 		z    *Real
 		want bool
@@ -231,7 +231,7 @@ func TestIsZeroDiv(t *testing.T) {
 	}
 }
 
-func TestInv(t *testing.T) {
+func TestRealInv(t *testing.T) {
 	var tests = []struct {
 		x    *Real
 		want *Real
@@ -247,7 +247,7 @@ func TestInv(t *testing.T) {
 	}
 }
 
-func TestQuo(t *testing.T) {
+func TestRealQuo(t *testing.T) {
 	var tests = []struct {
 		x    *Real
 		y    *Real
@@ -264,7 +264,7 @@ func TestQuo(t *testing.T) {
 	}
 }
 
-func TestIsRealInf(t *testing.T) {
+func TestRealIsInf(t *testing.T) {
 	var tests = []struct {
 		z    *Real
 		want bool
@@ -275,8 +275,8 @@ func TestIsRealInf(t *testing.T) {
 		{&Real{math.Inf(0), 4}, true},
 	}
 	for _, test := range tests {
-		if got := test.z.IsRealInf(); got != test.want {
-			t.Errorf("IsRealInf(%v) = %v", test.z, got)
+		if got := test.z.IsInf(); got != test.want {
+			t.Errorf("IsInf(%v) = %v", test.z, got)
 		}
 	}
 }
@@ -293,7 +293,7 @@ func ExampleRealInf() {
 	// (-Inf-Infε)
 }
 
-func TestIsRealNaN(t *testing.T) {
+func TestRealIsNaN(t *testing.T) {
 	var tests = []struct {
 		z    *Real
 		want bool
@@ -305,8 +305,8 @@ func TestIsRealNaN(t *testing.T) {
 		{&Real{math.Inf(0), math.NaN()}, false},
 	}
 	for _, test := range tests {
-		if got := test.z.IsRealNaN(); got != test.want {
-			t.Errorf("IsRealNaN(%v) = %v", test.z, got)
+		if got := test.z.IsNaN(); got != test.want {
+			t.Errorf("IsNaN(%v) = %v", test.z, got)
 		}
 	}
 }
