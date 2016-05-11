@@ -18,14 +18,40 @@ var (
 	symbSuper = [4]string{"", "σ", "τ", "στ"}
 )
 
+// Real returns the real part of z, a pointer to a Real value.
+func (z *Super) Real() *Real {
+	return z[0]
+}
+
+// Dual returns the dual part of z, a pointer to a Real value.
+func (z *Super) Dual() *Real {
+	return z[1]
+}
+
+// SetReal sets the real part of z equal to a.
+func (z *Super) SetReal(a *Real) {
+	z[0] = a
+}
+
+// SetDual sets the dual part of z equal to b.
+func (z *Super) SetDual(b *Real) {
+	z[1] = b
+}
+
+// Cartesian returns the four Cartesian components of z.
+func (z *Super) Cartesian() (a, b, c, d float64) {
+	a, b = z.Real().Cartesian()
+	c, d = z.Dual().Cartesian()
+	return
+}
+
 // String returns the string representation of a Super value.
 //
 // If z corresponds to the super dual real number a + bσ + cτ + dστ, then the
 // string is "(a+bσ+cτ+dστ)", similar to complex128 values.
 func (z *Super) String() string {
 	v := make([]float64, 4)
-	v[0], v[1] = (z[0])[0], (z[0])[1]
-	v[2], v[3] = (z[1])[0], (z[1])[1]
+	v[0], v[1], v[2], v[3] = z.Cartesian()
 	a := make([]string, 9)
 	a[0] = "("
 	a[1] = fmt.Sprintf("%g", v[0])
@@ -48,7 +74,7 @@ func (z *Super) String() string {
 
 // Equals returns true if z and y are equal.
 func (z *Super) Equals(y *Super) bool {
-	if !z[0].Equals(y[0]) || !z[1].Equals(y[1]) {
+	if !z.Real().Equals(y.Real()) || !z.Dual().Equals(y.Dual()) {
 		return false
 	}
 	return true
@@ -56,8 +82,8 @@ func (z *Super) Equals(y *Super) bool {
 
 // Copy copies y onto z, and returns z.
 func (z *Super) Copy(y *Super) *Super {
-	z[0] = new(Real).Copy(y[0])
-	z[1] = new(Real).Copy(y[1])
+	z.SetReal(new(Real).Copy(y.Real()))
+	z.SetDual(new(Real).Copy(y.Dual()))
 	return z
 }
 
@@ -65,14 +91,14 @@ func (z *Super) Copy(y *Super) *Super {
 // values.
 func NewSuper(a, b, c, d float64) *Super {
 	z := new(Super)
-	z[0] = NewReal(a, b)
-	z[1] = NewReal(c, d)
+	z.SetReal(NewReal(a, b))
+	z.SetDual(NewReal(c, d))
 	return z
 }
 
 // IsInf returns true if any of the components of z are infinite.
 func (z *Super) IsInf() bool {
-	if z[0].IsInf() || z[1].IsInf() {
+	if z.Real().IsInf() || z.Dual().IsInf() {
 		return true
 	}
 	return false
@@ -81,18 +107,18 @@ func (z *Super) IsInf() bool {
 // SuperInf returns a pointer to a super dual infinity value.
 func SuperInf(a, b, c, d int) *Super {
 	z := new(Super)
-	z[0] = RealInf(a, b)
-	z[1] = RealInf(c, d)
+	z.SetReal(RealInf(a, b))
+	z.SetDual(RealInf(c, d))
 	return z
 }
 
 // IsNaN returns true if any component of z is NaN and neither is an
 // infinity.
 func (z *Super) IsNaN() bool {
-	if z[0].IsInf() || z[1].IsInf() {
+	if z.Real().IsInf() || z.Dual().IsInf() {
 		return false
 	}
-	if z[0].IsNaN() || z[1].IsNaN() {
+	if z.Real().IsNaN() || z.Dual().IsNaN() {
 		return true
 	}
 	return false
@@ -101,8 +127,8 @@ func (z *Super) IsNaN() bool {
 // SuperNaN returns a pointer to a super dual NaN value.
 func SuperNaN() *Super {
 	z := new(Super)
-	z[0] = RealNaN()
-	z[1] = RealNaN()
+	z.SetReal(RealNaN())
+	z.SetDual(RealNaN())
 	return z
 }
 
@@ -112,8 +138,8 @@ func SuperNaN() *Super {
 // This is a special case of Mul:
 // 		Scal(y, a) = Mul(y, Super{a, 0})
 func (z *Super) Scal(y *Super, a *Real) *Super {
-	z[0] = new(Real).Mul(y[0], a)
-	z[1] = new(Real).Mul(y[1], a)
+	z.SetReal(new(Real).Mul(y.Real(), a))
+	z.SetDual(new(Real).Mul(y.Dual(), a))
 	return z
 }
 
@@ -122,8 +148,8 @@ func (z *Super) Scal(y *Super, a *Real) *Super {
 // This is a special case of Mul:
 // 		Dil(y, a) = Mul(y, Super{Real{a, 0}, 0})
 func (z *Super) Dil(y *Super, a float64) *Super {
-	z[0] = new(Real).Scal(y[0], a)
-	z[1] = new(Real).Scal(y[1], a)
+	z.SetReal(new(Real).Scal(y.Real(), a))
+	z.SetDual(new(Real).Scal(y.Dual(), a))
 	return z
 }
 
@@ -134,22 +160,22 @@ func (z *Super) Neg(y *Super) *Super {
 
 // Conj sets z equal to the conjugate of y, and returns z.
 func (z *Super) Conj(y *Super) *Super {
-	z[0] = new(Real).Conj(y[0])
-	z[1] = new(Real).Neg(y[1])
+	z.SetReal(new(Real).Conj(y.Real()))
+	z.SetDual(new(Real).Neg(y.Dual()))
 	return z
 }
 
 // Add sets z equal to the sum of x and y, and returns z.
 func (z *Super) Add(x, y *Super) *Super {
-	z[0] = new(Real).Add(x[0], y[0])
-	z[1] = new(Real).Add(x[1], y[1])
+	z.SetReal(new(Real).Add(x.Real(), y.Real()))
+	z.SetDual(new(Real).Add(x.Dual(), y.Dual()))
 	return z
 }
 
 // Sub sets z equal to the difference of x and y, and returns z.
 func (z *Super) Sub(x, y *Super) *Super {
-	z[0] = new(Real).Sub(x[0], y[0])
-	z[1] = new(Real).Sub(x[1], y[1])
+	z.SetReal(new(Real).Sub(x.Real(), y.Real()))
+	z.SetDual(new(Real).Sub(x.Dual(), y.Dual()))
 	return z
 }
 
@@ -165,11 +191,10 @@ func (z *Super) Sub(x, y *Super) *Super {
 func (z *Super) Mul(x, y *Super) *Super {
 	p := new(Super).Copy(x)
 	q := new(Super).Copy(y)
-	z[0] = new(Real).Mul(p[0], q[0])
-	z[1] = new(Real).Add(
-		new(Real).Mul(q[1], p[0]),
-		new(Real).Mul(p[1], q[0].Conj(q[0])),
-	)
+	z.SetReal(new(Real).Mul(p.Real(), q.Real()))
+	z.SetDual(new(Real).Add(
+		new(Real).Mul(q.Dual(), p.Real()),
+		new(Real).Mul(p.Dual(), q.Real().Conj(q.Real()))))
 	return z
 }
 
@@ -180,5 +205,6 @@ func (z *Super) Commutator(x, y *Super) *Super {
 
 // Quad returns the dual quadrance of z, a float64 value.
 func (z *Super) Quad() float64 {
-	return (z[0])[0] * (z[0])[0]
+	a := z.Real().Real()
+	return a * a
 }

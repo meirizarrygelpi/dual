@@ -20,14 +20,40 @@ var (
 	symbPerplex = [4]string{"", "s", "ε", "εs"}
 )
 
+// Real returns the real part of z, a pointer to a split.Complex value.
+func (z *Perplex) Real() *split.Complex {
+	return z[0]
+}
+
+// Dual returns the dual part of z, a pointer to a split.Complex value.
+func (z *Perplex) Dual() *split.Complex {
+	return z[1]
+}
+
+// SetReal sets the real part of z equal to a.
+func (z *Perplex) SetReal(a *split.Complex) {
+	z[0] = a
+}
+
+// SetDual sets the dual part of z equal to b.
+func (z *Perplex) SetDual(b *split.Complex) {
+	z[1] = b
+}
+
+// Cartesian returns the four Cartesian components of z.
+func (z *Perplex) Cartesian() (a, b, c, d float64) {
+	a, b = z.Real().Cartesian()
+	c, d = z.Dual().Cartesian()
+	return
+}
+
 // String returns the string representation of a Perplex value.
 //
 // If z corresponds to the dual perplex number a + bs + cε + dεs, then the
 // string is "(a+bs+cε+dεs)", similar to complex128 values.
 func (z *Perplex) String() string {
 	v := make([]float64, 4)
-	v[0], v[1] = (z[0])[0], (z[0])[1]
-	v[2], v[3] = (z[1])[0], (z[1])[1]
+	v[0], v[1], v[2], v[3] = z.Cartesian()
 	a := make([]string, 9)
 	a[0] = "("
 	a[1] = fmt.Sprintf("%g", v[0])
@@ -50,7 +76,7 @@ func (z *Perplex) String() string {
 
 // Equals returns true if z and y are equal.
 func (z *Perplex) Equals(y *Perplex) bool {
-	if !z[0].Equals(y[0]) || !z[1].Equals(y[1]) {
+	if !z.Real().Equals(y.Real()) || !z.Dual().Equals(y.Dual()) {
 		return false
 	}
 	return true
@@ -58,8 +84,8 @@ func (z *Perplex) Equals(y *Perplex) bool {
 
 // Copy copies y onto z, and returns z.
 func (z *Perplex) Copy(y *Perplex) *Perplex {
-	z[0] = new(split.Complex).Copy(y[0])
-	z[1] = new(split.Complex).Copy(y[1])
+	z.SetReal(new(split.Complex).Copy(y.Real()))
+	z.SetDual(new(split.Complex).Copy(y.Dual()))
 	return z
 }
 
@@ -67,44 +93,42 @@ func (z *Perplex) Copy(y *Perplex) *Perplex {
 // values.
 func NewPerplex(a, b, c, d float64) *Perplex {
 	z := new(Perplex)
-	z[0] = split.New(a, b)
-	z[1] = split.New(c, d)
+	z.SetReal(split.New(a, b))
+	z.SetDual(split.New(c, d))
 	return z
 }
 
 // IsInf returns true if any of the components of z are infinite.
 func (z *Perplex) IsInf() bool {
-	if z[0].IsInf() || z[1].IsInf() {
+	if z.Real().IsInf() || z.Dual().IsInf() {
 		return true
 	}
 	return false
 }
 
-// PerplexInf returns a pointer to a dual perplex infinity value.
-func PerplexInf(a, b, c, d int) *Perplex {
-	z := new(Perplex)
-	z[0] = split.Inf(a, b)
-	z[1] = split.Inf(c, d)
+// Inf sets z equal to a dual perplex infinity value.
+func (z *Perplex) Inf(a, b, c, d int) *Perplex {
+	z.Real().Inf(a, b)
+	z.Dual().Inf(c, d)
 	return z
 }
 
 // IsNaN returns true if any component of z is NaN and neither is an
 // infinity.
 func (z *Perplex) IsNaN() bool {
-	if z[0].IsInf() || z[1].IsInf() {
+	if z.Real().IsInf() || z.Dual().IsInf() {
 		return false
 	}
-	if z[0].IsNaN() || z[1].IsNaN() {
+	if z.Real().IsNaN() || z.Dual().IsNaN() {
 		return true
 	}
 	return false
 }
 
-// PerplexNaN returns a pointer to a dual perplex NaN value.
-func PerplexNaN() *Perplex {
-	z := new(Perplex)
-	z[0] = split.NaN()
-	z[1] = split.NaN()
+// NaN sets z equal to a dual perplex NaN value.
+func (z *Perplex) NaN() *Perplex {
+	z.Real().NaN()
+	z.Dual().NaN()
 	return z
 }
 
@@ -114,8 +138,8 @@ func PerplexNaN() *Perplex {
 // This is a special case of Mul:
 // 		Scal(y, a) = Mul(y, Perplex{a, 0})
 func (z *Perplex) Scal(y *Perplex, a *split.Complex) *Perplex {
-	z[0] = new(split.Complex).Mul(y[0], a)
-	z[1] = new(split.Complex).Mul(y[1], a)
+	z.Real().Mul(y.Real(), a)
+	z.Dual().Mul(y.Dual(), a)
 	return z
 }
 
@@ -124,8 +148,8 @@ func (z *Perplex) Scal(y *Perplex, a *split.Complex) *Perplex {
 // This is a special case of Mul:
 // 		Dil(y, a) = Mul(y, Perplex{split.Complex{a, 0}, 0})
 func (z *Perplex) Dil(y *Perplex, a float64) *Perplex {
-	z[0] = new(split.Complex).Scal(y[0], a)
-	z[1] = new(split.Complex).Scal(y[1], a)
+	z.Real().Scal(y.Real(), a)
+	z.Dual().Scal(y.Dual(), a)
 	return z
 }
 
@@ -136,22 +160,22 @@ func (z *Perplex) Neg(y *Perplex) *Perplex {
 
 // Conj sets z equal to the conjugate of y, and returns z.
 func (z *Perplex) Conj(y *Perplex) *Perplex {
-	z[0] = new(split.Complex).Conj(y[0])
-	z[1] = new(split.Complex).Neg(y[1])
+	z.Real().Conj(y.Real())
+	z.Dual().Neg(y.Dual())
 	return z
 }
 
 // Add sets z equal to the sum of x and y, and returns z.
 func (z *Perplex) Add(x, y *Perplex) *Perplex {
-	z[0] = new(split.Complex).Add(x[0], y[0])
-	z[1] = new(split.Complex).Add(x[1], y[1])
+	z.Real().Add(x.Real(), y.Real())
+	z.Dual().Add(x.Dual(), y.Dual())
 	return z
 }
 
 // Sub sets z equal to the difference of x and y, and returns z.
 func (z *Perplex) Sub(x, y *Perplex) *Perplex {
-	z[0] = new(split.Complex).Sub(x[0], y[0])
-	z[1] = new(split.Complex).Sub(x[1], y[1])
+	z.Real().Sub(x.Real(), y.Real())
+	z.Dual().Sub(x.Dual(), y.Dual())
 	return z
 }
 
@@ -168,20 +192,19 @@ func (z *Perplex) Sub(x, y *Perplex) *Perplex {
 func (z *Perplex) Mul(x, y *Perplex) *Perplex {
 	p := new(Perplex).Copy(x)
 	q := new(Perplex).Copy(y)
-	z[0] = new(split.Complex).Mul(p[0], q[0])
-	z[1] = new(split.Complex).Add(
-		new(split.Complex).Mul(q[1], p[0]),
-		new(split.Complex).Mul(p[1], q[0].Conj(q[0])),
-	)
+	z.Real().Mul(p.Real(), q.Real())
+	z.Dual().Mul(q.Dual(), p.Real())
+	z.Dual().Add(z.Dual(), q.Dual().Mul(p.Dual(), q.Real().Conj(q.Real())))
 	return z
 }
 
 // Commutator sets z equal to the commutator of x and y, and returns z.
 func (z *Perplex) Commutator(x, y *Perplex) *Perplex {
-	return z.Sub(new(Perplex).Mul(x, y), new(Perplex).Mul(y, x))
+	z.Mul(x, y)
+	return z.Sub(z, new(Perplex).Mul(y, x))
 }
 
 // Quad returns the quadrance of z, a float64 value.
 func (z *Perplex) Quad() float64 {
-	return z[0].Quad()
+	return z.Real().Quad()
 }

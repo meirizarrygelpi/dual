@@ -9,9 +9,35 @@ import (
 	"strings"
 )
 
-// A Real represents a dual real number as an ordered array of two float64
-// values.
+// A Real represents a dual real number.
 type Real [2]float64
+
+// Real returns the real part of z, a float64 value.
+func (z *Real) Real() float64 {
+	return z[0]
+}
+
+// Dual returns the dual part of z, a float64 value.
+func (z *Real) Dual() float64 {
+	return z[1]
+}
+
+// SetReal sets the real part of z equal to a.
+func (z *Real) SetReal(a float64) {
+	z[0] = a
+}
+
+// SetDual sets the dual part of z equal to b.
+func (z *Real) SetDual(b float64) {
+	z[1] = b
+}
+
+// Cartesian returns the two Cartesian components of z.
+func (z *Real) Cartesian() (a, b float64) {
+	a = z.Real()
+	b = z.Dual()
+	return
+}
 
 // String returns the string version of a Real value.
 //
@@ -19,14 +45,14 @@ type Real [2]float64
 func (z *Real) String() string {
 	a := make([]string, 5)
 	a[0] = "("
-	a[1] = fmt.Sprintf("%g", z[0])
+	a[1] = fmt.Sprintf("%g", z.Real())
 	switch {
-	case math.Signbit(z[1]):
-		a[2] = fmt.Sprintf("%g", z[1])
-	case math.IsInf(z[1], +1):
+	case math.Signbit(z.Dual()):
+		a[2] = fmt.Sprintf("%g", z.Dual())
+	case math.IsInf(z.Dual(), +1):
 		a[2] = "+Inf"
 	default:
-		a[2] = fmt.Sprintf("+%g", z[1])
+		a[2] = fmt.Sprintf("+%g", z.Dual())
 	}
 	a[3] = "ε"
 	a[4] = ")"
@@ -35,7 +61,7 @@ func (z *Real) String() string {
 
 // Equals returns true if z and y are equal.
 func (z *Real) Equals(y *Real) bool {
-	if notEquals(z[0], y[0]) || notEquals(z[1], y[1]) {
+	if notEquals(z.Real(), y.Real()) || notEquals(z.Dual(), y.Dual()) {
 		return false
 	}
 	return true
@@ -43,22 +69,22 @@ func (z *Real) Equals(y *Real) bool {
 
 // Copy copies y onto z, and returns z.
 func (z *Real) Copy(y *Real) *Real {
-	z[0] = y[0]
-	z[1] = y[1]
+	z.SetReal(y.Real())
+	z.SetDual(y.Dual())
 	return z
 }
 
 // NewReal returns a pointer to a Real value made from two given float64 values.
 func NewReal(a, b float64) *Real {
 	z := new(Real)
-	z[0] = a
-	z[1] = b
+	z.SetReal(a)
+	z.SetDual(b)
 	return z
 }
 
 // IsInf returns true if any of the components of z are infinite.
 func (z *Real) IsInf() bool {
-	if math.IsInf(z[0], 0) || math.IsInf(z[1], 0) {
+	if math.IsInf(z.Real(), 0) || math.IsInf(z.Dual(), 0) {
 		return true
 	}
 	return false
@@ -67,18 +93,18 @@ func (z *Real) IsInf() bool {
 // RealInf returns a pointer to a dual real infinity value.
 func RealInf(a, b int) *Real {
 	z := new(Real)
-	z[0] = math.Inf(a)
-	z[1] = math.Inf(b)
+	z.SetReal(math.Inf(a))
+	z.SetDual(math.Inf(b))
 	return z
 }
 
 // IsNaN returns true if any component of z is NaN and neither is an
 // infinity.
 func (z *Real) IsNaN() bool {
-	if math.IsInf(z[0], 0) || math.IsInf(z[1], 0) {
+	if math.IsInf(z.Real(), 0) || math.IsInf(z.Dual(), 0) {
 		return false
 	}
-	if math.IsNaN(z[0]) || math.IsNaN(z[1]) {
+	if math.IsNaN(z.Real()) || math.IsNaN(z.Dual()) {
 		return true
 	}
 	return false
@@ -87,13 +113,16 @@ func (z *Real) IsNaN() bool {
 // RealNaN returns a pointer to a dual real NaN value.
 func RealNaN() *Real {
 	nan := math.NaN()
-	return &Real{nan, nan}
+	z := new(Real)
+	z.SetReal(nan)
+	z.SetDual(nan)
+	return z
 }
 
 // Scal sets z equal to y scaled by a, and returns z.
 func (z *Real) Scal(y *Real, a float64) *Real {
-	z[0] = y[0] * a
-	z[1] = y[1] * a
+	z.SetReal(y.Real() * a)
+	z.SetDual(y.Dual() * a)
 	return z
 }
 
@@ -104,22 +133,22 @@ func (z *Real) Neg(y *Real) *Real {
 
 // Conj sets z equal to the conjugate of y, and returns z.
 func (z *Real) Conj(y *Real) *Real {
-	z[0] = +y[0]
-	z[1] = -y[1]
+	z.SetReal(y.Real())
+	z.SetDual(y.Dual() * -1)
 	return z
 }
 
 // Add sets z equal to the sum of x and y, and returns z.
 func (z *Real) Add(x, y *Real) *Real {
-	z[0] = x[0] + y[0]
-	z[1] = x[1] + y[1]
+	z.SetReal(x.Real() + y.Real())
+	z.SetDual(x.Dual() + y.Dual())
 	return z
 }
 
 // Sub sets z equal to the difference of x and y, and returns z.
 func (z *Real) Sub(x, y *Real) *Real {
-	z[0] = x[0] - y[0]
-	z[1] = x[1] - y[1]
+	z.SetReal(x.Real() - y.Real())
+	z.SetDual(x.Dual() - y.Dual())
 	return z
 }
 
@@ -131,20 +160,20 @@ func (z *Real) Sub(x, y *Real) *Real {
 func (z *Real) Mul(x, y *Real) *Real {
 	p := new(Real).Copy(x)
 	q := new(Real).Copy(y)
-	z[0] = p[0] * q[0]
-	z[1] = (p[0] * q[1]) + (p[1] * q[0])
+	z.SetReal(p.Real() * q.Real())
+	z.SetDual((p.Real() * q.Dual()) + (p.Dual() * q.Real()))
 	return z
 }
 
 // Quad returns the non-negative dual quadrance of z, a float64 value.
 func (z *Real) Quad() float64 {
-	return z[0] * z[0]
+	return z.Real() * z.Real()
 }
 
 // IsZeroDiv returns true if z is a zero divisor. This is equivalent to
 // z being nilpotent (i.e. z² = 0).
 func (z *Real) IsZeroDiv() bool {
-	return !notEquals(z[0], 0)
+	return !notEquals(z.Real(), 0)
 }
 
 // Inv sets z equal to the inverse of y, and returns z. If y is a zero divisor,
@@ -167,38 +196,38 @@ func (z *Real) Quo(x, y *Real) *Real {
 
 // Sin sets z equal to the dual sine of y, and returns z.
 func (z *Real) Sin(y *Real) *Real {
-	s, c := math.Sincos(y[0])
-	z[0] = s
-	z[1] = y[1] * c
+	s, c := math.Sincos(y.Real())
+	z.SetReal(s)
+	z.SetDual(y.Dual() * c)
 	return z
 }
 
 // Cos sets z equal to the dual cosine of y, and returns z.
 func (z *Real) Cos(y *Real) *Real {
-	s, c := math.Sincos(y[0])
-	z[0] = c
-	z[1] = -y[1] * s
+	s, c := math.Sincos(y.Real())
+	z.SetReal(c)
+	z.SetDual(y.Dual() * s * -1)
 	return z
 }
 
 // Exp sets z equal to the dual exponential of y, and returns z.
 func (z *Real) Exp(y *Real) *Real {
-	e := math.Exp(y[0])
-	z[0] = e
-	z[1] = y[1] * e
+	e := math.Exp(y.Real())
+	z.SetReal(e)
+	z.SetDual(y.Dual() * e)
 	return z
 }
 
 // Sinh sets z equal to the dual hyperbolic sine of y, and returns z.
 func (z *Real) Sinh(y *Real) *Real {
-	z[0] = math.Sinh(y[0])
-	z[1] = y[1] * math.Cosh(y[0])
+	z.SetReal(math.Sinh(y.Real()))
+	z.SetDual(y.Dual() * math.Cosh(y.Real()))
 	return z
 }
 
 // Cosh sets z equal to the dual hyperbolic cosine of y, and returns z.
 func (z *Real) Cosh(y *Real) *Real {
-	z[0] = math.Cosh(y[0])
-	z[1] = y[1] * math.Sinh(y[0])
+	z.SetReal(math.Cosh(y.Real()))
+	z.SetDual(y.Dual() * math.Sinh(y.Real()))
 	return z
 }
